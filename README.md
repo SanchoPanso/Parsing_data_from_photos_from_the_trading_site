@@ -3,4 +3,5 @@
 
 Установка tesseract Linux: команда `sudo apt install tesseract-ocr`.
 
-Установка tesseract Windows: https://tesseract-ocr.github.io/tessdoc/.
+Установка tesseract Windows: https://github.com/UB-Mannheim/tesseract/wiki.<br>
+Путь для установки: "C:\Program Files\Tesseract-OCR"
