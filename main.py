@@ -1,9 +1,5 @@
-import requests
-from bs4 import BeautifulSoup
 import numpy as np
 import cv2
-import pytesseract
-from pytesseract import Output
 import re
 import time
 
@@ -27,20 +23,6 @@ red_area_upper = [163, 255, 255]
 
 green_area_lower = [79, 0, 0]
 green_area_upper = [92, 106, 61]
-
-
-def get_image_using_url(original_url: str) -> np.ndarray:
-    """return the image from the standard page that the url points to"""
-
-    response = requests.get(original_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    img_url = soup.find('img').get('src')
-
-    img_response = requests.get(img_url)
-    img_arr = np.asarray(bytearray(img_response.content), dtype=np.uint8)
-    img = cv2.imdecode(img_arr, -1)
-
-    return img
 
 
 def preprocessing(img: np.ndarray) -> np.ndarray:
@@ -109,12 +91,12 @@ def get_title(img):
 
 def main():
     """The main entry point of the application"""
-    # img = get_image_using_url(example_url)
+
     start_time = time.time()
     img = cv2.imread("example.png")
     img_for_prices = img[:, int(0.9 * img.shape[1]):img.shape[1]]   # доработать
 
-    print(get_title(img))
+    print(f"Пара: {get_title(img)}")
     print(f"Текущая область: {get_current_area(img)}")
 
     gray_data = get_data_from_boxes(img_for_prices, gray_price_lower, gray_price_upper)
