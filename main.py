@@ -94,7 +94,7 @@ def main():
 
     start_time = time.time()
     img = cv2.imread("example.png")
-    img_for_prices = img[:, int(0.9 * img.shape[1]):img.shape[1]]   # доработать
+    img_for_prices = img[:, int(0.9 * img.shape[1]):img.shape[1]]
 
     print(f"Пара: {get_title(img)}")
     print(f"Текущая область: {get_current_area(img)}")
@@ -109,7 +109,7 @@ def main():
                                                                                             r"\d{2}:\d{2}:\d{2}"))
     print(f"Зеленая цена: {green_data}")
 
-    print(f"Время работы: {time.time() - start_time} с")
+    print("Время работы: {:.2f} с".format(time.time() - start_time))
 
 
 if __name__ == '__main__':
