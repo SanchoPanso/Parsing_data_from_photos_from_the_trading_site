@@ -2,9 +2,7 @@ import cv2
 import numpy as np
 
 
-def get_filtered_by_colors_image(img, lower: list, upper: list):
-    lower = np.array(lower)
-    upper = np.array(upper)
+def get_filtered_by_colors_image(img, lower: np.ndarray, upper: np.ndarray):
     imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(imgHSV, lower, upper)
     img_result = cv2.bitwise_and(img, img, mask=mask)
@@ -48,8 +46,8 @@ def detection_tools():
         cv2.waitKey(1)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    print(f"[{lower[0]}, {lower[1]}, {lower[2]}]")
-    print(f"[{upper[0]}, {upper[1]}, {upper[2]}]")
+    print(f"lower = [{lower[0]}, {lower[1]}, {lower[2]}]")
+    print(f"upper = [{upper[0]}, {upper[1]}, {upper[2]}]")
 
 
 if __name__ == '__main__':

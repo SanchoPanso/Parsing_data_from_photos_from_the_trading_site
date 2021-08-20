@@ -33,23 +33,33 @@ def preprocessing(img: np.ndarray, params: PreprocessingParams):
     return img_result
 
 
-def get_all_approx_contours(img: np.ndarray):
+def get_all_approx_contours(img: np.ndarray, pre_params: PreprocessingParams = pre_params_for_borders):
 
-    preprocessed_img = preprocessing(img, pre_params_for_borders)
+    preprocessed_img = preprocessing(img, pre_params)
     contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
 
     poly_contours = []
     for c in contours:
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-        if len(approx) == 4:
+        if len(approx) == 4:    # доработать
             poly_contours.append(approx)
 
-    # poly = cv2.drawContours(img, poly_contours, -1, (0, 255, 255), 2)
-    # cv2.imshow('img', cv2.resize(poly, (250, 640)))
-    # cv2.waitKey(0)
+    poly = cv2.drawContours(img, poly_contours, -1, (0, 255, 255), 2)
+    cv2.imshow('img', cv2.resize(img, (640, 640)))
+    cv2.waitKey(0)
 
     return poly_contours
+
+
+def find_contour_with_the_biggest_area(contours):
+    max_area = 0
+    max_index = -1
+    for i in range(len(contours)):
+        if cv2.contourArea(contours[i]) > max_area:
+            max_area = cv2.contourArea(contours[i])
+            max_index = i
+    return contours[max_index]
 
 
 def get_bounding_boxes(contours):
