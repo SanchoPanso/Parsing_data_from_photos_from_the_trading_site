@@ -1,11 +1,11 @@
-red_price_lower = [0, 190, 0]
-red_price_upper = [40, 255, 255]
+red_price_lower = [0, 90, 116]
+red_price_upper = [71, 255, 255]
 
-green_price_lower = [85, 0, 125]
-green_price_upper = [90, 255, 255]
+green_price_lower = [20, 70, 0]
+green_price_upper = [110, 255, 255]
 
-gray_price_lower = [114, 15, 0]
-gray_price_upper = [116, 40, 138]
+gray_price_lower = [0, 10, 0]
+gray_price_upper = [179, 41, 204]
 
 red_area_lower = [169, 106, 0]
 red_area_upper = [176, 133, 67]
