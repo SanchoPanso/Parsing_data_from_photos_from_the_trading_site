@@ -5,6 +5,3 @@
 
 Установка tesseract Windows: https://github.com/UB-Mannheim/tesseract/wiki.<br>
 Путь для установки: "C:\Program Files\Tesseract-OCR"
-
-
-P.S. Пока все сломано
