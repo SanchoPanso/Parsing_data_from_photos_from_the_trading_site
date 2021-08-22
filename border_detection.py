@@ -4,6 +4,7 @@ from color_detection import get_filtered_by_colors_image
 import os
 import matplotlib.pyplot as plt
 
+
 class PreprocessingParams:
     def __init__(self,
                  canny_thresholds: tuple,
@@ -21,47 +22,55 @@ pre_params_for_borders = PreprocessingParams(canny_thresholds=(30, 60),
                                              morph_kernel_size=(5, 5))
 
 
-def preprocessing(img: np.ndarray, params: PreprocessingParams):
-    canny_thresholds = params.canny_thresholds
-    gauss_kernel_size = params.gauss_kernel_size
-    morph_kernel_size = params.morph_kernel_size
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, morph_kernel_size)
+def preprocessing_for_border_detection(img: np.ndarray,
+                                       canny_thresholds=(30, 60),
+                                       gauss_kernel_size=7,
+                                       morph_kernel_size=5):
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size, morph_kernel_size))
 
     img_result = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if gauss_kernel_size is not None:
-        img_result = cv2.GaussianBlur(img_result, gauss_kernel_size, 0)
 
-    # img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel, iterations=3)
-    # img_result = cv2.morphologyEx(img_result, cv2.MORPH_OPEN, kernel, iterations=2)
+    img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel1, iterations=1)
+    x1 = 0
+    x2 = img_result.shape[1] - 1
+    for y in range(img_result.shape[0]):
+        img_result[y, x1] = 0
+        img_result[y, x2] = 0
 
-    cv2.imshow('img', cv2.resize(img_result, (160, 720)))
-    cv2.waitKey(0)
-
+    img_result = cv2.GaussianBlur(img_result, (gauss_kernel_size, gauss_kernel_size), 0)
     img_result = cv2.Canny(img_result, canny_thresholds[0], canny_thresholds[1])
-    img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel)
+    img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel2)
 
     return img_result
 
 
-def get_all_approx_contours(img: np.ndarray, pre_params: PreprocessingParams = pre_params_for_borders):
+def get_all_approx_contours(img: np.ndarray, pre_params: PreprocessingParams = pre_params_for_borders,
+                            gauss_kernel_sizes=range(7, 10, 2),
+                            morph_kernel_sizes=range(1, 6, 2)):
+    poly_contours_list = []
+    for gauss_kernel_size in gauss_kernel_sizes:
+        for morph_kernel_size in morph_kernel_sizes:
+            preprocessed_img = preprocessing_for_border_detection(img,
+                                                                  gauss_kernel_size=gauss_kernel_size,
+                                                                  morph_kernel_size=morph_kernel_size)
+            # cv2.imshow('img', cv2.resize(preprocessed_img, (160, 720)))
+            # cv2.waitKey(0)
+            contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
 
-    preprocessed_img = preprocessing(img, pre_params)
-    cv2.imshow('img', cv2.resize(preprocessed_img, (160, 720)))
-    cv2.waitKey(0)
-    contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+            poly_contours = []
+            for c in contours:
+                peri = cv2.arcLength(c, True)
+                approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+                if len(approx) == 4:    # доработать
+                    poly_contours.append(approx)
+            poly_contours_list.append(poly_contours)
 
-    poly_contours = []
-    for c in contours:
-        peri = cv2.arcLength(c, True)
-        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-        if len(approx) == 4:    # доработать
-            poly_contours.append(approx)
+            poly = cv2.drawContours(img, poly_contours, -1, (0, 255, 255), 2)
+            cv2.imshow('img', cv2.resize(poly, (160, 720)))
+            cv2.waitKey(200)
 
-    poly = cv2.drawContours(img, poly_contours, -1, (0, 255, 255), 2)
-    cv2.imshow('img', cv2.resize(poly, (160, 720)))
-    cv2.waitKey(0)
-
-    return poly_contours
+    return poly_contours_list
 
 
 def find_contour_with_the_biggest_area(contours):
@@ -74,13 +83,16 @@ def find_contour_with_the_biggest_area(contours):
     return contours[max_index]
 
 
-def get_bounding_boxes(contours):
-    bboxes = []
-    for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
-        bboxes.append((x, y, w, h))
+def get_bounding_boxes(contours_list):
+    bboxes_list = []
+    for contours in contours_list:
+        bboxes = []
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            bboxes.append((x, y, w, h))
+        bboxes_list.append(bboxes)
 
-    return bboxes
+    return bboxes_list
 
 
 def get_borders_of_vertical_scale(img):
@@ -89,33 +101,41 @@ def get_borders_of_vertical_scale(img):
     filtered = get_filtered_by_colors_image(img, np.array([0, 0, 0]), np.array([180, 85, 115]))
     gray = cv2.cvtColor(filtered, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    edged = cv2.Canny(blur, 50, 150)
-    # cv2.imshow("img", edged[:, int(0.9*width):])
-    # cv2.waitKey(0)
+    edged = cv2.Canny(blur, 30, 60)
+    # cv2.imshow("Edged", edged[:, int(0.9*width):])
+    # cv2.waitKey(1000)
     borders = []
     sums = []
-    for x in range(width - 1, int(0.9*width), -1): # на будущее, переработать
+    for x in range(width - 1, int(0.9 * width), -1): # на будущее, переработать
         sum = 0
         for y in range(0, height):
             if edged[y, x] != 0:
                 sum += 1
         sums.append(sum/height)
-        if sum/height > 0.6:
-            if len(borders) > 0 and borders[-1] - x < 5: # 5 как то назвать
-                continue
+        if sum/height > 0.45:
+            if len(borders) > 0:
+                if borders[-1] - x < 5: # 5 как то назвать
+                    continue
+            else:
+                if width - 1 - x < 15:
+                    continue
             borders.append(x)
+    # mean = np.array(sums).mean()
+    # print(mean)
+    # means = [mean] * len(sums)
+    # plt.plot(sums)
+    # plt.plot(means)
+    # plt.show()
 
     return borders
 
 
 if __name__ == '__main__':
-    img = cv2.imread(f"example2.jpg")
-    print(get_borders_of_vertical_scale(img))
-    # img_result = cv2.cvtColor(img[:, int(img.shape[1]*0.9):], cv2.COLOR_BGR2GRAY)
-    # img_result = cv2.GaussianBlur(img_result, (3, 3), 0)
-    # img_result = cv2.Canny(img_result, 30, 60)
-    # cv2.imshow("img", img_result)
-    # cv2.waitKey(0)
+    img = cv2.imread(f"example.png")
+    borders = get_borders_of_vertical_scale(img)
+    print(borders)
+    cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])
+    cv2.waitKey(0)
 
     # img_paths = os.listdir("test_images")
     # print(img_paths)
@@ -123,5 +143,6 @@ if __name__ == '__main__':
     #     img = cv2.imread(f"test_images\\{path}")
     #     borders = get_borders_of_vertical_scale(img)
     #     print(borders)
-
+    #     cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])
+    #     cv2.waitKey(200)
 

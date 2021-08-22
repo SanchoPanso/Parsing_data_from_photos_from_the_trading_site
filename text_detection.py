@@ -59,10 +59,9 @@ def delete_black_borders(img):
 
 
 def preprocessing_for_text_recognition(img, aug_value=4):
-    fixed = delete_black_borders(img)
-    gray = cv2.cvtColor(fixed, cv2.COLOR_BGR2GRAY)
-    augmented = cv2.resize(gray, (gray.shape[1] * 4,
-                                  gray.shape[0] * 4))
+    # fixed = delete_black_borders(img)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    augmented = cv2.resize(gray, None, fx=aug_value, fy=aug_value)
     thresholded = cv2.threshold(augmented, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     return thresholded
 

@@ -1,12 +1,14 @@
 import numpy as np
 import cv2
+from collections import namedtuple
 import re
 import time
 import sys
+import os
 
 from config import *
-from color_detection import get_filtered_by_colors_image, increase_contrast
-from border_detection import get_all_approx_contours, get_bounding_boxes, preprocessing, PreprocessingParams, find_contour_with_the_biggest_area
+from color_detection import get_filtered_by_colors_image
+from border_detection import get_all_approx_contours, get_bounding_boxes, preprocessing_for_border_detection, PreprocessingParams, find_contour_with_the_biggest_area
 from border_detection import get_borders_of_vertical_scale
 from text_detection import get_text_data, get_text, preprocessing_for_text_recognition
 from input_output import get_image_using_url, write_into_json
@@ -26,12 +28,13 @@ class EntityInfo:
 
 
 pre_params_for_text = PreprocessingParams(canny_thresholds=(30, 60),
-                                              gauss_kernel_size=None,
+                                          gauss_kernel_size=None,
                                               morph_kernel_size=(1, 1))
 
 red_price_info = EntityInfo(red_price_lower, red_price_upper, pre_params_for_text, price_searching_zone)
 green_price_info = EntityInfo(green_price_lower, green_price_upper, pre_params_for_text, price_searching_zone)
 gray_price_info = EntityInfo(gray_price_lower, gray_price_upper, pre_params_for_text, price_searching_zone)
+white_price_info = EntityInfo(white_price_lower, white_price_upper, pre_params_for_text, price_searching_zone)
 
 pre_params_for_areas = PreprocessingParams(canny_thresholds=(30, 60),
                                                gauss_kernel_size=(3, 3),
@@ -41,56 +44,70 @@ red_area_info = EntityInfo(red_area_lower, red_area_upper, pre_params_for_areas,
 green_area_info = EntityInfo(green_area_lower, green_area_upper, pre_params_for_areas, area_searching_zone)
 
 
-def delete_artifacts(img):
-    mean = [0, 0, 0]
-    width = img.shape[1]
-    height = img.shape[0]
-    depth = 0
-    black_borders_is_not_deleted = True
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    threshold = 140
-
-    for x in range(width):
-        for y in range(height):
-            for canal in range(3):
-                mean[canal] += img[y, x][canal]
-    for canal in range(3):
-        mean[canal] /= width * height
-
-    while black_borders_is_not_deleted:
-        black_borders_is_not_deleted = False
-        for x in range(depth, width - depth):
-            y = 0
-            if img_hsv[y, x][2] < threshold:
-                black_borders_is_not_deleted = True
-                for canal in range(3):
-                    img[y, x][canal] = mean[canal]
-
-        for x in range(depth, width - depth):
-            y = height - 1
-            if img_hsv[y, x][2] < threshold:
-                black_borders_is_not_deleted = True
-                for canal in range(3):
-                    img[y, x][canal] = mean[canal]
-
-        for y in range(depth, height - depth):
-            x = 0
-            if img_hsv[y, x][2] < threshold:
-                black_borders_is_not_deleted = True
-                for canal in range(3):
-                    img[y, x][canal] = mean[canal]
-
-        for y in range(depth, height - depth):
-            x = width - 1
-            if img_hsv[y, x][2] < threshold:
-                black_borders_is_not_deleted = True
-                for canal in range(3):
-                    img[y, x][canal] = mean[canal]
-        depth += 1
-    return img
+PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h"])
+AllPriceResult = namedtuple("AllPriceResult", ['red_data', 'green_data', 'gray_data', 'white_data'])
 
 
-def get_data_from_boxes(img: np.ndarray, price_info: EntityInfo, patterns: tuple):
+def get_text_data_from_boxes(img,
+                             bboxes):
+
+    price_pattern = r"\d{1,}[.]\d{1,}"
+    valid_text = ""
+    price_result = []
+    for bbox in bboxes:
+        x, y, w, h = bbox
+        if 1 <= w / h <= 5 and w * h > 16:
+            cropped_img = img[y:y + h, x:x + w]
+            preprocessed_img = preprocessing_for_text_recognition(cropped_img)
+            # preprocessed_img = preprocessing(cropped_img, params)
+
+            # cv2.imshow('img', preprocessed_img)
+            # cv2.waitKey(0)
+
+            chars = get_text_data(preprocessed_img)['text']
+            text = ''
+            for ch in chars:
+                text += ch
+            # print(text)
+
+            search = re.search(price_pattern, text)
+            if search:
+                valid_text = search.group(0)
+                price_result.append(PriceResult(valid_text, x, y, w, h))
+
+    return price_result
+
+
+def filter_result_text(price_result_list: list):# переработать
+    if len(price_result_list) == 0:
+        return None
+    len_list = [len(price_result) for price_result in price_result_list]
+
+    max_len_price_result_list = []
+    max_len = max(len_list)
+    for price_result in price_result_list:
+        if len(price_result) == max_len:
+            max_len_price_result_list.append(price_result)
+    assert len(max_len_price_result_list) > 0
+
+    if max_len == 1:
+        for price_result in max_len_price_result_list:
+            if price_result[0] != '':
+                return price_result
+        return max_len_price_result_list[0]
+
+    # print(max_len_price_result_list)
+    for i in range(len(max_len_price_result_list) - 1):
+        price_result_list = sorted(max_len_price_result_list[i], key=lambda x: float(x.value))
+        for j in range(max_len):
+            if max_len_price_result_list[i][j].y < max_len_price_result_list[i][j].y:
+                break
+        return max_len_price_result_list[0]
+
+    return max_len_price_result_list[0]
+
+
+def get_price_data(img: np.ndarray, price_info: EntityInfo):
     """
     filter image by colors and then find rectangles in this image,
     find their bounding boxes and recognize text in boxes which fulfill the required patterns
@@ -101,42 +118,15 @@ def get_data_from_boxes(img: np.ndarray, price_info: EntityInfo, patterns: tuple
     params = price_info.params
 
     filtered_img = get_filtered_by_colors_image(img, lower, upper)
-    approx_contours = get_all_approx_contours(filtered_img)
-    bboxes = get_bounding_boxes(approx_contours)
+    approx_contours_list = get_all_approx_contours(filtered_img)
+    bboxes_list = get_bounding_boxes(approx_contours_list)
 
-    valid_text = []
-    for bbox in bboxes:
-        x, y, w, h = bbox
-        if 1 <= w/h <= 5 and w*h > 16:
-            cropped_img = img[y:y + h, x:x + w]
-            preprocessed_img = preprocessing_for_text_recognition(cropped_img)
-            # preprocessed_img = preprocessing(cropped_img, params)
-
-            cv2.imshow('img', preprocessed_img)
-            cv2.waitKey(0)
-
-            # preprocessed_img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2GRAY)
-            # preprocessed_img = cv2.resize(preprocessed_img, (preprocessed_img.shape[1] * 4,
-            #                                                  preprocessed_img.shape[0] * 4))
-            #
-            #
-            # preprocessed_img = cv2.threshold(preprocessed_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-
-            chars = get_text_data(preprocessed_img)['text']
-
-            text = ''
-            for ch in chars:
-                text += ch
-            print(text)
-
-            valid_words = []
-            for pattern in patterns:
-                search = re.search(pattern, text)
-                if search:
-                    valid_words.append(search.group(0))
-            if len(valid_words) > 0:
-                valid_text.append(valid_words)
-    return valid_text
+    price_resilt_list = []
+    for bboxes in bboxes_list:
+        price_result = get_text_data_from_boxes(img, bboxes)
+        price_resilt_list.append(price_result)
+    final = filter_result_text(price_resilt_list)
+    return final
 
 
 def get_current_area(img, red_area_info, green_area_info):
@@ -175,37 +165,84 @@ def prepare_image_for_price(img, width):
     return img
 
 
+def highlight_prices(img, all_price_result: AllPriceResult):
+    for price_result in all_price_result:
+        for price in price_result:
+            x = price.x
+            y = price.y
+            w = price.w
+            h = price.h
+            value = price.value
+            img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 4)
+            cv2.putText(img, value, (x, y), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 255), 1)
+    cv2.imshow('result', cv2.resize(img, (140, 800)))
+    cv2.waitKey(200)
+
+
+def test():
+    img_paths = os.listdir("test_images")
+    print(img_paths)
+    for path in img_paths:
+        try:
+            img = cv2.imread(f"test_images\\{path}")
+            borders_for_prices = get_borders_of_vertical_scale(img)
+            img_for_prices = prepare_image_for_price(img[:, borders_for_prices[0] - 7: img.shape[1]], 7)
+
+            red_data = get_price_data(img_for_prices, red_price_info)
+            print(f"Красная цена: {red_data}")
+
+            gray_data = get_price_data(img_for_prices, gray_price_info)
+            print(f"Серая цена: {gray_data}")
+
+            green_data = get_price_data(img_for_prices, green_price_info)
+            print(f"Зеленая цена: {green_data}")
+
+            white_data = get_price_data(img_for_prices, white_price_info)
+            print(f"Белая цена: {white_data}")
+
+            all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
+            highlight_prices(img_for_prices, all_price_result)
+        except:
+            print(f"invalid file {path}")
+
+
 def main():
     """The main entry point of the application"""
 
     # print(sys.argv)
     start_time = time.time()
-    # img = get_image_using_url(example_url)
-    img = cv2.imread("example2.jpg")
+
+    img = cv2.imread("test_images\\f_044611fa24868e08.png")
     # cv2.imshow('img', cv2.resize(img, (640, 640)))
     # cv2.waitKey(0)
     print("Файл \'example.png\' открыт")
     borders_for_prices = get_borders_of_vertical_scale(img)
     # borders_for_prices.append(img.shape[1])         # временно
     # borders_for_prices = borders_for_prices[::-1]   # временно
+
     img_for_prices = prepare_image_for_price(img[:, borders_for_prices[1]-7: borders_for_prices[0]], 7)
 
-    print(f"Тикер: {get_title(img)}")
+    # print(f"Тикер: {get_title(img)}")
     # print(f"Текущая область сверху: {get_current_area(img)}")
 
-    red_data = get_data_from_boxes(img_for_prices, red_price_info, (r"\d{1,}[.]\d{1,}", r"\d{2}:\d{2}:\d{2}"))
+    red_data = get_price_data(img_for_prices, red_price_info)
     print(f"Красная цена: {red_data}")
 
-    gray_data = get_data_from_boxes(img_for_prices, gray_price_info, (r"\d{1,}[.]\d{1,}",))
+    gray_data = get_price_data(img_for_prices, gray_price_info)
     print(f"Серая цена: {gray_data}")
 
-    green_data = get_data_from_boxes(img_for_prices, green_price_info, (r"\d{1,}[.]\d{1,}", r"\d{2}:\d{2}:\d{2}"))
+    green_data = get_price_data(img_for_prices, green_price_info)
     print(f"Зеленая цена: {green_data}")
 
+    white_data = get_price_data(img_for_prices, white_price_info)
+    print(f"Белая цена: {white_data}")
+
+    all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
+    highlight_prices(img_for_prices, all_price_result)
     print("Время работы: {:.2f} с".format(time.time() - start_time))
 
 
 if __name__ == '__main__':
-    main()
+    test()
 
 

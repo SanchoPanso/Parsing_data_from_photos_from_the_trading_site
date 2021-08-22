@@ -2,34 +2,31 @@ import cv2
 import numpy as np
 
 
-def get_filtered_by_colors_image(img, lower: np.ndarray, upper: np.ndarray):
-    imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(imgHSV, lower, upper)
+def apply_mask(img: np.ndarray, img_hsv: np.ndarray, lower: np.ndarray, upper: np.ndarray):
+    mask = cv2.inRange(img_hsv, lower, upper)
     img_result = cv2.bitwise_and(img, img, mask=mask)
     return img_result
 
 
-def increase_contrast(img):
-    # -----Converting image to LAB Color model-----------------------------------
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    # cv2.imshow("lab", lab)
-    # -----Splitting the LAB image to different channels-------------------------
-    l, a, b = cv2.split(lab)
-    # cv2.imshow('l_channel', l)
-    # cv2.imshow('a_channel', a)
-    # cv2.imshow('b_channel', b)
-    # -----Applying CLAHE to L-channel-------------------------------------------
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-    cl = clahe.apply(l)
-    # cv2.imshow('CLAHE output', cl)
-    # -----Merge the CLAHE enhanced L-channel with the a and b channel-----------
-    limg = cv2.merge((cl, a, b))
-    # cv2.imshow('limg', limg)
-    # -----Converting image from LAB Color model to RGB model--------------------
-    final = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-    # cv2.imshow('final', final)
+def get_filtered_by_colors_image(img, lower: np.ndarray, upper: np.ndarray):
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    if lower[0] >= 0:
+        img_result = apply_mask(img, img_hsv, lower, upper)
+    else:
+        lower1 = lower.copy()
+        upper1 = upper.copy()
+        lower2 = lower1.copy()
+        upper2 = upper1.copy()
 
-    return final
+        lower2[0] = 179 + lower[0]
+        lower1[0] = 0
+        upper2[0] = 179
+
+        img_result1 = apply_mask(img, img_hsv, lower1, upper1)
+        img_result2 = apply_mask(img, img_hsv, lower2, upper2)
+        img_result = img_result1 + img_result2
+
+    return img_result
 
 
 def rough_image_hsv(img_hsv):
@@ -90,7 +87,7 @@ def detection_tools_rgb():
     print(f"upper = [{upper[0]}, {upper[1]}, {upper[2]}]")
 
 
-def detection_tools_hsv():
+def detection_tools_hsv(filename):
     cv2.namedWindow("TrackBars")
     cv2.resizeWindow("TrackBars", 640, 240)
     cv2.createTrackbar("Hue Min", "TrackBars", 0, 179, empty)
@@ -100,7 +97,7 @@ def detection_tools_hsv():
     cv2.createTrackbar("Val Min", "TrackBars", 0, 255, empty)
     cv2.createTrackbar("Val Max", "TrackBars", 255, 255, empty)
 
-    img = cv2.imread("example2.jpg")
+    img = cv2.imread(filename)
     img = img[:, int(img.shape[1]*0.9):]
 
     img = cv2.resize(img, (320, 640))
@@ -121,7 +118,7 @@ def detection_tools_hsv():
         mask = cv2.inRange(imgHSV, lower, upper)
         imgResult = cv2.bitwise_and(img, img, mask=mask)
 
-        cv2.imshow("aaaa", imgResult)
+        cv2.imshow("Color detection", imgResult)
         cv2.waitKey(1)
         if cv2.waitKey(1) == 27:# & 0xFF == ord('q'):
             break
@@ -130,6 +127,6 @@ def detection_tools_hsv():
 
 
 if __name__ == '__main__':
-    detection_tools_hsv()
+    detection_tools_hsv("test_images\\f_022611fa253a07ec.jpg")
 # lower = [0, 0, 0]
 # upper = [179, 86, 115]
