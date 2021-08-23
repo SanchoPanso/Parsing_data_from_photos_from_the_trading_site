@@ -1,5 +1,62 @@
 import cv2
 import numpy as np
+from config import mean_colors
+
+
+def define_mean_color():
+    samples = ["red_sample", "green_sample", "gray_sample", "white_sample", "blue_sample"]
+    for name in samples:
+        sample = cv2.imread(f"color_samples\\{name}.png")
+        mean = [0, 0, 0]
+        for x in range(sample.shape[1]):
+            for y in range(sample.shape[0]):
+                for canal in range(3):
+                    mean[canal] += sample[y, x][canal]
+        for canal in range(3):
+            mean[canal] /= sample.shape[0] * sample.shape[1]
+        for canal in range(3):
+            mean[canal] = int(mean[canal])
+        image = np.zeros((500, 500, 3), dtype=np.uint8)
+        for x in range(500):
+            for y in range(500):
+                for canal in range(3):
+                    image[y, x][canal] = mean[canal]
+
+        cv2.imshow(name, image)
+        print(f"{name} = {mean}")
+    cv2.waitKey(0)
+
+
+def get_mean_color(img):
+    width = img.shape[1]
+    height = img.shape[0]
+    mean = [0, 0, 0]
+    for x in range(width):
+        for y in range(height):
+            for canal in range(3):
+                mean[canal] += img[y, x][canal]
+    for canal in range(3):
+        mean[canal] = int(mean[canal] / (width * height))
+    return mean
+
+
+def get_nearest_mean_color(current_mean_color):
+    keys = mean_colors.keys()
+    distances = dict()
+    for key in keys:
+        distance = 0
+        for canal in range(3):
+            distance += (current_mean_color[canal] - mean_colors[key][canal]) ** 2
+        distances[key] = distance
+
+    min_key = ''
+    min_value = 0
+    for key in keys:
+        if min_value == 0 or min_value > distances[key]:
+            min_key = key
+            min_value = distances[key]
+
+    return min_key
 
 
 def apply_mask(img: np.ndarray, img_hsv: np.ndarray, lower: np.ndarray, upper: np.ndarray):
@@ -98,9 +155,9 @@ def detection_tools_hsv(filename):
     cv2.createTrackbar("Val Max", "TrackBars", 255, 255, empty)
 
     img = cv2.imread(filename)
-    img = img[:, int(img.shape[1]*0.9):]
+    img = img[:, int(img.shape[1]*0.5):]
 
-    img = cv2.resize(img, (320, 640))
+    img = cv2.resize(img, (640, 640))
     imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     lower = np.array([85, 15, 10])
@@ -127,6 +184,7 @@ def detection_tools_hsv(filename):
 
 
 if __name__ == '__main__':
-    detection_tools_hsv("test_images\\f_022611fa253a07ec.jpg")
+    # define_mean_color()
+    detection_tools_hsv("test_images\\f_336611fa2539a0a1.jpg")
 # lower = [0, 0, 0]
 # upper = [179, 86, 115]

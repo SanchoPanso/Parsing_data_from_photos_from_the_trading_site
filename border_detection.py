@@ -23,15 +23,15 @@ pre_params_for_borders = PreprocessingParams(canny_thresholds=(30, 60),
 
 
 def preprocessing_for_border_detection(img: np.ndarray,
-                                       canny_thresholds=(30, 60),
-                                       gauss_kernel_size=7,
-                                       morph_kernel_size=5):
-    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size, morph_kernel_size))
+                                       gauss_kernel_size,
+                                       morph_kernel_size1,
+                                       morph_kernel_size2,
+                                       canny_thresholds=(30, 60)):
 
     img_result = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size1, morph_kernel_size1))
     img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel1, iterations=1)
+
     x1 = 0
     x2 = img_result.shape[1] - 1
     for y in range(img_result.shape[0]):
@@ -40,35 +40,43 @@ def preprocessing_for_border_detection(img: np.ndarray,
 
     img_result = cv2.GaussianBlur(img_result, (gauss_kernel_size, gauss_kernel_size), 0)
     img_result = cv2.Canny(img_result, canny_thresholds[0], canny_thresholds[1])
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size2, morph_kernel_size2))
     img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel2)
 
     return img_result
 
 
-def get_all_approx_contours(img: np.ndarray, pre_params: PreprocessingParams = pre_params_for_borders,
-                            gauss_kernel_sizes=range(7, 10, 2),
-                            morph_kernel_sizes=range(1, 6, 2)):
+def get_all_approx_contours(img: np.ndarray,
+                            gauss_kernel_sizes=range(5, 12, 2),
+                            morph_kernel_sizes1=range(3, 10, 2),
+                            morph_kernel_sizes2=range(3, 10, 2)):
     poly_contours_list = []
     for gauss_kernel_size in gauss_kernel_sizes:
-        for morph_kernel_size in morph_kernel_sizes:
-            preprocessed_img = preprocessing_for_border_detection(img,
-                                                                  gauss_kernel_size=gauss_kernel_size,
-                                                                  morph_kernel_size=morph_kernel_size)
-            # cv2.imshow('img', cv2.resize(preprocessed_img, (160, 720)))
-            # cv2.waitKey(0)
-            contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+        for morph_kernel_size1 in morph_kernel_sizes1:
+            for morph_kernel_size2 in morph_kernel_sizes2:
+                preprocessed_img = preprocessing_for_border_detection(img,
+                                                                      gauss_kernel_size=gauss_kernel_size,
+                                                                      morph_kernel_size1=morph_kernel_size1,
+                                                                      morph_kernel_size2=morph_kernel_size2)
 
-            poly_contours = []
-            for c in contours:
-                peri = cv2.arcLength(c, True)
-                approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-                if len(approx) == 4:    # доработать
-                    poly_contours.append(approx)
-            poly_contours_list.append(poly_contours)
+                # cv2.imshow('img', cv2.resize(preprocessed_img, (160, 720)))
+                # cv2.waitKey(0)
+                contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
 
-            poly = cv2.drawContours(img, poly_contours, -1, (0, 255, 255), 2)
-            cv2.imshow('img', cv2.resize(poly, (160, 720)))
-            cv2.waitKey(200)
+                for i in range(len(contours)):
+                    contours[i] = cv2.convexHull(contours[i])
+
+                poly_contours = []
+                for c in contours:
+                    peri = cv2.arcLength(c, True)
+                    approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+                    if len(approx) == 4:    # доработать
+                        poly_contours.append(approx)
+                poly_contours_list.append(poly_contours)
+
+                poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
+                cv2.imshow('img', cv2.resize(poly, (160, 720)))
+                cv2.waitKey(1)
 
     return poly_contours_list
 
@@ -131,7 +139,10 @@ def get_borders_of_vertical_scale(img):
 
 
 if __name__ == '__main__':
-    img = cv2.imread(f"example.png")
+    img = cv2.imread(f"example.jpg")
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    # cv2.imwrite("images\\current_price_snippet.jpg", cv2.resize(img, None, fx=4, fy=4))
     borders = get_borders_of_vertical_scale(img)
     print(borders)
     cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])

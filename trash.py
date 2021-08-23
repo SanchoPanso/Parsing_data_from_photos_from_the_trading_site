@@ -4,6 +4,78 @@ import requests
 from bs4 import BeautifulSoup
 
 
+# def get_current_area(img, red_area_info, green_area_info):
+#     """define in which area the current price is"""
+#
+#     red_filtered_img = get_filtered_by_colors_image(img, red_area_info.lower, red_area_info.upper)
+#     red_contours = get_all_approx_contours(red_filtered_img, red_area_info.params)
+#     max_red_contour = find_contour_with_the_biggest_area(red_contours)
+#
+#     green_filtered_img = get_filtered_by_colors_image(img, green_area_info.lower, green_area_info.upper)
+#     green_contours = get_all_approx_contours(green_filtered_img, green_area_info.params)
+#     max_green_contour = find_contour_with_the_biggest_area(green_contours)
+#
+#     red_bbox, green_bbox = get_bounding_boxes([max_red_contour, max_green_contour])
+#     print(red_bbox)
+#     print(green_bbox)
+#
+#     if red_bbox[1] < green_bbox[1]:
+#         return "red"
+#     else:
+#         return "green"
+
+
+def delete_black_borders(img):  # вроде не нужно
+    mean = 0
+    width = img.shape[1]
+    height = img.shape[0]
+    threshold = 30
+
+    for x in range(width):
+        for y in range(height):
+            mean += img[y, x]
+    mean /= width * height
+
+    depth = 0
+    black_borders_is_not_deleted = True
+    while black_borders_is_not_deleted:
+        black_borders_is_not_deleted = False
+        for x in range(depth, depth + 1):
+            for y in range(1, height - 1):
+                if img[y, x] < threshold:
+                    black_borders_is_not_deleted = True
+                    for canal in range(3):
+                        img[y, x] = mean
+
+        for x in range(width - depth - 2, width - depth - 1):
+            for y in range(1, height - 1):
+                if img[y, x] < threshold:
+                    black_borders_is_not_deleted = True
+                    for canal in range(3):
+                        img[y, x] = mean
+        depth += 0
+
+    depth = 0
+    black_borders_is_not_deleted = True
+    while black_borders_is_not_deleted:
+        black_borders_is_not_deleted = False
+        for x in range(0, width):
+            for y in range(depth, depth + 1):
+                if img[y, x] < threshold:
+                    black_borders_is_not_deleted = True
+                    for canal in range(3):
+                        img[y, x] = mean
+
+        for x in range(0, width):
+            for y in range(height - depth - 2, height - depth - 1):
+                if img[y, x] < threshold:
+                    black_borders_is_not_deleted = True
+                    for canal in range(3):
+                        img[y, x] = mean
+        depth += 0
+    return img
+
+
 def get_image_using_url(original_url: str) -> np.ndarray:
     """return the image from the standard page that the url points to"""
 
