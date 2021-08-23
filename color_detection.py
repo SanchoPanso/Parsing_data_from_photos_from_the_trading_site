@@ -3,7 +3,7 @@ import numpy as np
 from config import mean_colors
 
 
-def define_mean_color():
+def define_mean_color_tool():
     samples = ["red_sample", "green_sample", "gray_sample", "white_sample", "blue_sample"]
     for name in samples:
         sample = cv2.imread(f"color_samples\\{name}.png")
@@ -38,6 +38,26 @@ def get_mean_color(img):
     for canal in range(3):
         mean[canal] = int(mean[canal] / (width * height))
     return mean
+
+
+def check_color_proximity(mean_color_key: str, query_color_value: list):
+    mean_colors_list = []
+    for key in mean_colors.keys():
+        mean_colors_list.append([key, mean_colors[key]])
+    distances = []
+    for c in mean_colors_list:
+        distance = 0
+        for canal in range(3):
+            distance += (query_color_value[canal] - c[1][canal]) ** 2
+        distances.append([c[0], distance])
+    distances = sorted(distances, key=lambda x: x[1])
+    if distances[0][0] == mean_color_key:
+        return True
+    for i in range(1, len(distances)):
+        if distances[i][0] == mean_color_key:
+            if distances[0][1] / distances[i][1] > 0.8: # возможно, поменять
+                return True
+    return False
 
 
 def get_nearest_mean_color(current_mean_color):
@@ -86,27 +106,11 @@ def get_filtered_by_colors_image(img, lower: np.ndarray, upper: np.ndarray):
     return img_result
 
 
-def rough_image_hsv(img_hsv):
-    max_values = [179, 255, 255]
-    for x in range(img_hsv.shape[1]):
-        for y in range(img_hsv.shape[0]):
-            h, s, v = img_hsv[y, x]
-
-            h = (h // 20) * 20
-            s = (h // 20) * 20
-            v = (h // 20) * 20
-
-            img_hsv[y, x][0] = h
-            img_hsv[y, x][1] = s
-            img_hsv[y, x][2] = v
-    return img_hsv
-
-
 def empty(a):
     pass
 
 
-def detection_tools_rgb():
+def detection_tools_rgb(filename):
     cv2.namedWindow("TrackBars")
     cv2.resizeWindow("TrackBars", 640, 240)
     cv2.createTrackbar("R Min", "TrackBars", 0, 255, empty)
@@ -116,7 +120,7 @@ def detection_tools_rgb():
     cv2.createTrackbar("B Min", "TrackBars", 0, 255, empty)
     cv2.createTrackbar("B Max", "TrackBars", 255, 255, empty)
 
-    img = cv2.imread("example2.jpg")
+    img = cv2.imread(filename)
     img = img[:, int(img.shape[1]*0.9):]
 
     img = cv2.resize(img, (320, 640))
@@ -138,7 +142,7 @@ def detection_tools_rgb():
 
         cv2.imshow("aaaa", img_result)
         cv2.waitKey(1)
-        if cv2.waitKey(1) == 27:# & 0xFF == ord('q'):
+        if cv2.waitKey(1) == 27:   # & 0xFF == ord('q'):
             break
     print(f"lower = [{lower[0]}, {lower[1]}, {lower[2]}]")
     print(f"upper = [{upper[0]}, {upper[1]}, {upper[2]}]")
@@ -177,14 +181,12 @@ def detection_tools_hsv(filename):
 
         cv2.imshow("Color detection", imgResult)
         cv2.waitKey(1)
-        if cv2.waitKey(1) == 27:# & 0xFF == ord('q'):
+        if cv2.waitKey(1) == 27:     # & 0xFF == ord('q'):
             break
     print(f"lower = [{lower[0]}, {lower[1]}, {lower[2]}]")
     print(f"upper = [{upper[0]}, {upper[1]}, {upper[2]}]")
 
 
 if __name__ == '__main__':
-    # define_mean_color()
     detection_tools_hsv("test_images\\f_336611fa2539a0a1.jpg")
-# lower = [0, 0, 0]
-# upper = [179, 86, 115]
+

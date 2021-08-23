@@ -7,9 +7,8 @@ import sys
 import os
 
 from config import *
-from color_detection import get_filtered_by_colors_image, get_mean_color, get_nearest_mean_color
-from border_detection import get_all_approx_contours, get_bounding_boxes, preprocessing_for_border_detection, find_contour_with_the_biggest_area
-from border_detection import get_borders_of_vertical_scale
+from color_detection import get_filtered_by_colors_image, get_mean_color, get_nearest_mean_color, check_color_proximity
+from border_detection import get_all_approx_contours, get_bounding_boxes, get_borders_of_vertical_scale
 from text_recognition import get_digit_only_text_data, get_text, preprocessing_for_text_recognition, TextCash
 from input_output import get_image_using_url, write_into_json
 
@@ -29,7 +28,7 @@ AllPriceResult = namedtuple("AllPriceResult", ['red_data', 'green_data', 'gray_d
 current_price_result = PriceResult('', 0, 0, 0, 0)
 
 
-def get_text_data_from_boxes(img, bboxes, mean_color, text_cash: TextCash):
+def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash):
     global current_price_result
     price_pattern = r"\d{1,}[.]\d{1,}"
     time_pattern = r"\d{2}[:]\d{2}"
@@ -80,8 +79,10 @@ def get_text_data_from_boxes(img, bboxes, mean_color, text_cash: TextCash):
             valid_text = ""
             cropped_img = img[y:y + h, x:x + w]
             current_mean_color = get_mean_color(cropped_img)
-            if get_nearest_mean_color(current_mean_color) != mean_color:
+            if not check_color_proximity(mean_color_key, current_mean_color):   # перепроверить
                 break
+            # if get_nearest_mean_color(current_mean_color) != mean_color:
+            #     break
             preprocessed_img_list = preprocessing_for_text_recognition(cropped_img)
 
             search = False
@@ -106,8 +107,8 @@ def get_text_data_from_boxes(img, bboxes, mean_color, text_cash: TextCash):
     return price_result, text_cash
 
 
-def filter_result_text(price_result_list: list):# переработать
-    # print(price_result_list)
+def filter_result_text(price_result_list: list):
+
     if len(price_result_list) == 0:
         return None
     len_list = [len(price_result) for price_result in price_result_list]
@@ -125,7 +126,6 @@ def filter_result_text(price_result_list: list):# переработать
                 return price_result
         return max_len_price_result_list[0]
 
-    # print(max_len_price_result_list)
     for i in range(len(max_len_price_result_list) - 1):
         price_result_list = sorted(max_len_price_result_list[i], key=lambda x: float(x.value))
         for j in range(max_len):
@@ -139,7 +139,7 @@ def filter_result_text(price_result_list: list):# переработать
 def get_price_data(img: np.ndarray, price_info: PriceInfo):
     """
     filter image by colors and then find rectangles in this image,
-    find their bounding boxes and recognize text in boxes which fulfill the required patterns
+    find their bounding boxes and recognize text in boxes which fulfill the required price pattern
     """
 
     lower = price_info.lower
@@ -159,7 +159,10 @@ def get_price_data(img: np.ndarray, price_info: PriceInfo):
     return final
 
 
-def get_ticker(img):
+def get_ticker(img: np.ndarray):
+    """
+    get ticker with cropping original image and searching the ticker pattern
+    """
     ticker_pattern = r'[A-Z]{2,}[:-][A-Z]{2,}'
     img_for_ticker = img[:int(img.shape[0] * 0.25), :int(img.shape[1] * 0.5)]
     filtered_img = get_filtered_by_colors_image(img_for_ticker, np.array(ticker_lower), np.array(ticker_upper))
@@ -179,7 +182,8 @@ def get_ticker(img):
     return ticker
 
 
-def prepare_image_for_price(img, width):
+def prepare_image_for_price(img: np.ndarray, width: int):
+    """fill with black color the left border of the cropped vertical scale"""
     img_result = img.copy()
     for x in range(width):
         for y in range(img.shape[0]):
@@ -188,7 +192,7 @@ def prepare_image_for_price(img, width):
     return img_result
 
 
-def highlight_prices(img, border, all_price_result: AllPriceResult, ticker):
+def highlight_prices(img, border, all_price_result: AllPriceResult, ticker, delay):
 
     img = cv2.putText(img, ticker, (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
                       cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
@@ -210,7 +214,7 @@ def highlight_prices(img, border, all_price_result: AllPriceResult, ticker):
             img = cv2.putText(img, value, (x + border - 7 - line_lenght, y - 5),
                               cv2.FONT_HERSHEY_COMPLEX, 0.8, color, 2)
     cv2.imshow('result', cv2.resize(img, (1280, 768)))
-    cv2.waitKey(1)
+    cv2.waitKey(delay)
     return img
 
 
@@ -265,7 +269,7 @@ def test():
 
             all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
             all_price_result = delete_intersecting_and_small(all_price_result)
-            img = highlight_prices(img, borders_for_prices[0], all_price_result, ticker)
+            img = highlight_prices(img, borders_for_prices[0], all_price_result, ticker, 1)
             cv2.imwrite(f'results\\{path}', img)
         except:
             print(f"invalid file{path}")
@@ -304,8 +308,8 @@ def main():
     all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
     all_price_result = delete_intersecting_and_small(all_price_result)
 
-    highlight_prices(img, borders_for_prices[0], all_price_result, ticker)
     print("Время работы: {:.2f} с".format(time.time() - start_time))
+    highlight_prices(img, borders_for_prices[0], all_price_result, ticker, 0)
 
 
 if __name__ == '__main__':
