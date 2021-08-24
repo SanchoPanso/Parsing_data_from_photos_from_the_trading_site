@@ -7,7 +7,7 @@ import os
 import sys
 
 from config import *
-from searching_for_definite_objects import AllPriceResults, PriceResult
+from searching_for_definite_objects import PriceResult
 
 
 def get_image():
