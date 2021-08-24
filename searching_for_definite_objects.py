@@ -9,9 +9,10 @@ from collections import namedtuple
 import re
 
 from config import *
+from preprocessing import preprocessing_for_text_recognition
 from color_detection import get_filtered_by_colors_image, get_mean_color, get_nearest_mean_color, check_color_proximity
 from border_detection import get_all_approx_contours, get_bounding_boxes, get_borders_of_vertical_scale
-from text_recognition import get_digit_only_text_data, get_text, preprocessing_for_text_recognition, TextCash
+from text_recognition import get_digit_only_text_data, get_text, TextCash
 
 example_url = "https://www.tradingview.com/x/nShwrpHU/"
 
@@ -32,6 +33,10 @@ class PriceResult:
         self.h = h
         self.reliability = reliability
 
+    def __repr__(self):
+        return f"PriceResults(value={self.value}, x={self.x}, y={self.y}, " \
+               f"w={self.w}, h={self.h}, reliability={self.reliability})"
+
     def __str__(self):
         return f"PriceResults(value={self.value}, x={self.x}, y={self.y}, " \
                f"w={self.w}, h={self.h}, reliability={self.reliability})"
@@ -41,7 +46,7 @@ class PriceResult:
 
 
 def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash,
-                             extra_cropping_width: int = 1):
+                             extra_cropping_width: int = 0):
     price_pattern = r"\d{1,}[.]\d{1,}"
     # time_pattern = r"\d{2}[:]\d{2}"
     price_result = []
@@ -56,16 +61,18 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
 
         if 2.15 <= w / h <= 4 and w * h > 32:
             valid_text = ""
-            cropped_img = img[y:y + h, x + extra_cropping_width:x + w - extra_cropping_width]
+            cropped_img = img[y:y + h, x + extra_cropping_width:x + w]
             current_mean_color = get_mean_color(cropped_img)
             if not check_color_proximity(mean_color_key, current_mean_color):
                 break
             # if get_nearest_mean_color(current_mean_color) != mean_color:
             #     break
-            preprocessed_img_list = preprocessing_for_text_recognition(cropped_img)
+            preprocessed_img_list = preprocessing_for_text_recognition.preprocess(cropped_img)
 
             search = False
             for preprocessed_img in preprocessed_img_list:
+                cv2.imshow('img', preprocessed_img)
+                cv2.waitKey(1)
 
                 chars = get_digit_only_text_data(preprocessed_img)['text']
                 text = ''

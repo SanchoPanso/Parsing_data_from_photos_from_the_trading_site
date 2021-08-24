@@ -56,21 +56,6 @@ def highlight_text_on_image(img):
     cv2.waitKey(0)
 
 
-def preprocessing_for_text_recognition(img, aug_values=(4, 8)):     # 5.5, 4 значение aug_value подобрано эмпирически
-    results = []
-    for aug_value in aug_values:
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        augmented = cv2.resize(gray, None, fx=aug_value, fy=aug_value)
-        thresholded_binary = cv2.threshold(augmented, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-        # kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 3))
-        # eroded = cv2.erode(thresholded_binary, kernel1, iterations=1)
-        results.append(thresholded_binary)
-
-    cv2.imshow('img', thresholded_binary)
-    cv2.waitKey(1)
-    return results
-
-
 if __name__ == '__main__':
     img = cv2.imread("images_for_experiments\\current_price_snippet.jpg")
     print(get_digit_only_text_data(img))

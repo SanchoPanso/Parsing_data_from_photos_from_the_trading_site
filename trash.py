@@ -3,6 +3,47 @@ import numpy as np
 import requests
 from bs4 import BeautifulSoup
 
+
+# def preprocessing_for_border_detection(img: np.ndarray,
+#                                        gauss_kernel_size,
+#                                        morph_kernel_size1,
+#                                        morph_kernel_size2,
+#                                        canny_thresholds=(30, 60)):
+#
+#     img_result = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size1, morph_kernel_size1))
+#     img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel1, iterations=1)
+#
+#     x1 = 0
+#     x2 = img_result.shape[1] - 1
+#     for y in range(img_result.shape[0]):
+#         img_result[y, x1] = 0
+#         img_result[y, x2] = 0
+#
+#     img_result = cv2.GaussianBlur(img_result, (gauss_kernel_size, gauss_kernel_size), 0)
+#     img_result = cv2.Canny(img_result, canny_thresholds[0], canny_thresholds[1])
+#     kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_kernel_size2, morph_kernel_size2))
+#     img_result = cv2.morphologyEx(img_result, cv2.MORPH_CLOSE, kernel2)
+#
+#     return img_result
+
+
+def preprocessing_for_text_recognition(img, aug_values=(4, 8)):     # 5.5, 4 значение aug_value подобрано эмпирически
+    results = []
+    for aug_value in aug_values:
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        augmented = cv2.resize(gray, None, fx=aug_value, fy=aug_value)
+        thresholded_binary = cv2.threshold(augmented, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        # thr = cv2.threshold(augmented, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]
+        # thresholded_binary = cv2.threshold(augmented, int(thr * 0.9), 255, cv2.THRESH_BINARY)[1]
+        # kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 3))
+        # eroded = cv2.erode(thresholded_binary, kernel1, iterations=1)
+        results.append(thresholded_binary)
+
+    cv2.imshow('img', thresholded_binary)
+    cv2.waitKey(100)
+    return results
+
 # if 1.3 <= w / h <= 2.1 and w * h > 64:
 #     pass
 #     cropped_img = img[y:y + h, x:x + w]
