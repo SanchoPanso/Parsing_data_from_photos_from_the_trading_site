@@ -10,7 +10,7 @@ if os.name == 'nt':
 
 
 class TextCash:
-    def __init__(self, threshold=20):
+    def __init__(self, threshold=30):
         self.bboxes = []
         self.text = []
         self.threshold = threshold
@@ -73,17 +73,6 @@ def preprocessing_for_text_recognition(img, aug_values=(4, 8)):     # 5.5, 4 Ð·Ð
 
 if __name__ == '__main__':
     img = cv2.imread("images\\current_price_snippet.jpg")
-    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # edged = cv2.Canny(gray, 30, 60)
-    # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
-    # opened = cv2.morphologyEx(edged, cv2.MORPH_OPEN, kernel)
-    # img = cv2.cvtColor(opened, cv2.COLOR_GRAY2BGR)
-    # threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     print(get_digit_only_text_data(img))
-    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    #
-    # print(pytesseract.image_to_string(img, lang='eng',
-    #                                   config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789.'))
 
 

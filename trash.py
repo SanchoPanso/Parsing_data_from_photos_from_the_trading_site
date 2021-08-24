@@ -3,6 +3,42 @@ import numpy as np
 import requests
 from bs4 import BeautifulSoup
 
+# if 1.3 <= w / h <= 2.1 and w * h > 64:
+#     pass
+#     cropped_img = img[y:y + h, x:x + w]
+#
+#     current_mean_color = get_mean_color(cropped_img)
+#     if not check_color_proximity('red_price_mean_color', current_mean_color):  # перепроверить
+#         if not check_color_proximity('green_price_mean_color', current_mean_color):
+#             break
+#
+#     # if get_nearest_mean_color(current_mean_color) == 'blue_price_mean_color':
+#     #     break
+#
+#     cropped_img1 = cropped_img[:cropped_img.shape[1] // 2, :]
+#     cropped_img2 = cropped_img[cropped_img.shape[1] // 2:, :]
+#
+#     preprocessed_img_list1 = preprocessing_for_text_recognition(cropped_img1)
+#     preprocessed_img_list2 = preprocessing_for_text_recognition(cropped_img2)
+#     search_price = False
+#     search_time = False
+#
+#     for preprocessed_img1 in preprocessed_img_list1:
+#         chars = get_digit_only_text_data(preprocessed_img1)['text']
+#         text = ''
+#         for ch in chars:
+#             text += ch
+#         search_price = re.search(price_pattern, text)
+#     for preprocessed_img2 in preprocessed_img_list2:
+#         chars = get_digit_only_text_data(preprocessed_img2)['text']
+#         text = ''
+#         for ch in chars:
+#             text += ch
+#         search_time = re.search(time_pattern, text)
+#     if search_price and search_time:
+#         current_price_result = PriceResult(f"{search_time.group(0)}", x, y, w, h)  # разобраться со временем
+#         text_cash.add(bbox, f"{search_time.group(0)}")
+
 
 # def get_current_area(img, red_area_info, green_area_info):
 #     """define in which area the current price is"""

@@ -28,10 +28,11 @@ AllPriceResult = namedtuple("AllPriceResult", ['red_data', 'green_data', 'gray_d
 current_price_result = PriceResult('', 0, 0, 0, 0)
 
 
-def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash):
+def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash,
+                             extra_cropping_width: int = 1):
     global current_price_result
     price_pattern = r"\d{1,}[.]\d{1,}"
-    time_pattern = r"\d{2}[:]\d{2}"
+    # time_pattern = r"\d{2}[:]\d{2}"
     price_result = []
     for bbox in bboxes:
         x, y, w, h = bbox
@@ -39,47 +40,14 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
         cash_checking_result = text_cash.check(bbox)
         if cash_checking_result != -1:
             if text_cash.text[cash_checking_result] != '':
-                # if ':' not in text_cash.text[cash_checking_result]:
                 price_result.append(PriceResult(text_cash.text[cash_checking_result], x, y, w, h))
                 continue
 
-        if 1.8 <= w / h <= 2.1 and w * h > 64:
-            pass
-            # cropped_img = img[y:y + h, x:x + w]
-            #
-            # current_mean_color = get_mean_color(cropped_img)
-            # if get_nearest_mean_color(current_mean_color) == 'blue_price_mean_color':
-            #     break
-            #
-            # cropped_img1 = cropped_img[:cropped_img.shape[1] // 2, :]
-            # cropped_img2 = cropped_img[cropped_img.shape[1] // 2:, :]
-            #
-            # preprocessed_img_list1 = preprocessing_for_text_recognition(cropped_img1)
-            # preprocessed_img_list2 = preprocessing_for_text_recognition(cropped_img2)
-            # search_price = False
-            # search_time = False
-            #
-            # for preprocessed_img1 in preprocessed_img_list1:
-            #     chars = get_digit_only_text_data(preprocessed_img1)['text']
-            #     text = ''
-            #     for ch in chars:
-            #         text += ch
-            #     search_price = re.search(price_pattern, text)
-            # for preprocessed_img2 in preprocessed_img_list2:
-            #     chars = get_digit_only_text_data(preprocessed_img2)['text']
-            #     text = ''
-            #     for ch in chars:
-            #         text += ch
-            #     search_time = re.search(time_pattern, text)
-            # if search_price and search_time:
-            #     current_price_result = PriceResult(f"{search_time.group(0)}", x, y, w, h) # разобраться со временем
-            #     text_cash.add(bbox, f"{search_time.group(0)}")
-
-        elif 2.5 <= w / h <= 5 and w * h > 32:
+        if 2.15 <= w / h <= 4 and w * h > 32:
             valid_text = ""
-            cropped_img = img[y:y + h, x:x + w]
+            cropped_img = img[y:y + h, x + extra_cropping_width:x + w - extra_cropping_width]
             current_mean_color = get_mean_color(cropped_img)
-            if not check_color_proximity(mean_color_key, current_mean_color):   # перепроверить
+            if not check_color_proximity(mean_color_key, current_mean_color):
                 break
             # if get_nearest_mean_color(current_mean_color) != mean_color:
             #     break
@@ -87,9 +55,6 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
 
             search = False
             for preprocessed_img in preprocessed_img_list:
-                # preprocessed_img = preprocessing(cropped_img, params)
-                # cv2.imshow('img', preprocessed_img)
-                # cv2.waitKey(0)
 
                 chars = get_digit_only_text_data(preprocessed_img)['text']
                 text = ''
@@ -108,7 +73,6 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
 
 
 def filter_result_text(price_result_list: list):
-
     if len(price_result_list) == 0:
         return None
     len_list = [len(price_result) for price_result in price_result_list]
@@ -178,7 +142,6 @@ def get_ticker(img: np.ndarray):
             ticker = ticker.split('-')[1]
     else:
         ticker = 'None'
-    # ticker = text.strip().split('\n')[1].split(',')[0].split(':')[1]
     return ticker
 
 
@@ -192,10 +155,88 @@ def prepare_image_for_price(img: np.ndarray, width: int):
     return img_result
 
 
-def highlight_prices(img, border, all_price_result: AllPriceResult, ticker, delay):
+def delete_intersecting_and_small(all_price_result: AllPriceResult):
+    sqr_list = []
+    coord_list = []
+    for i in range(len(all_price_result)):
+        for j in range(len(all_price_result[i]) - 1, -1, -1):
+            sqr_list.append(all_price_result[i][j].w * all_price_result[i][j].h)
 
-    img = cv2.putText(img, ticker, (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
+            x1 = all_price_result[i][j].x
+            y1 = all_price_result[i][j].y
+            w1 = all_price_result[i][j].w
+            h1 = all_price_result[i][j].h
+            for k in range(len(all_price_result)):
+                stop_flag = False
+                if stop_flag:
+                    break
+                if k == i:
+                    continue
+                for l in range(len(all_price_result[k])):
+
+                    x2 = all_price_result[k][l].x
+                    y2 = all_price_result[k][l].y
+                    w2 = all_price_result[k][l].w
+                    h2 = all_price_result[k][l].h
+
+                    if x2 < x1 + w1/2 < x2 + w2 and y2 < y1 + h1/2 < y2 + h2 and w1*h1 < w2*h2:
+                        all_price_result[i].pop(j)
+                        stop_flag = True
+
+    mean = np.array(sqr_list).mean()
+    index_blacklists = []
+    for price_result in all_price_result:
+        index_blacklist = []
+        for i in range(len(price_result)):
+            if price_result[i].w * price_result[i].h < 0.6 * mean:
+                index_blacklist.append(i)
+        index_blacklists.append(index_blacklist)
+
+    for i in range(len(all_price_result)):
+        index_blacklist = index_blacklists[i]
+        if len(index_blacklist) != 0:
+            all_price_result[i].pop(*index_blacklist[::-1])
+
+    return all_price_result
+
+
+def define_direction(all_price_result: AllPriceResult):
+    red_data = all_price_result.red_data
+    green_data = all_price_result.green_data
+    gray_data = all_price_result.gray_data
+    white_data = all_price_result.white_data
+
+    if len(red_data) != 0 and len(green_data) != 0:
+        if red_data[0].y > green_data[-1].y:
+            return 'up'
+        else:
+            return 'down'
+
+    if len(red_data) != 0 and len(gray_data) != 0:
+        if red_data[0].y > gray_data[0].y:
+            return 'up'
+        else:
+            return 'down'
+
+    if len(gray_data) != 0 and len(green_data) != 0:
+        if gray_data[0].y > green_data[-1].y:
+            return 'up'
+        else:
+            return 'down'
+
+    return 'not defined'
+
+
+def highlight_prices(img, border, all_price_result: AllPriceResult, ticker, direction, delay):
+
+    img = cv2.putText(img, 'Tiker: ' + ticker,
+                      (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
                       cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
+
+    img = cv2.putText(img, 'Direction: ' + direction,
+                      (int(img.shape[1] * 0.25), int(img.shape[0] * 0.3)),
+                      cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
+
     img = cv2.line(img, (border, 0), (border, img.shape[0] - 1), (0, 255, 255))
 
     line_lenght = 900
@@ -218,30 +259,6 @@ def highlight_prices(img, border, all_price_result: AllPriceResult, ticker, dela
     return img
 
 
-def delete_intersecting_and_small(all_price_result: AllPriceResult):
-    common_list = []
-    mean = 0
-    for price_result in all_price_result:
-        for price in price_result:
-            common_list.append(price.w * price.h)
-    mean = np.array(common_list).mean()
-
-    index_blacklists = []
-    for price_result in all_price_result:
-        index_blacklist = []
-        for i in range(len(price_result)):
-            if price_result[i].w * price_result[i].h < 0.5 * mean:
-                index_blacklist.append(i)
-        index_blacklists.append(index_blacklist)
-
-    for i in range(len(all_price_result)):
-        index_blacklist = index_blacklists[i]
-        if len(index_blacklist) != 0:
-            all_price_result[i].pop(*index_blacklist[::-1])
-
-    return all_price_result
-
-
 def test():
     img_paths = os.listdir("test_images")
     # print(img_paths)
@@ -253,7 +270,7 @@ def test():
             img = cv2.imread(f"test_images\\{path}")
             ticker = get_ticker(img)
             borders_for_prices = get_borders_of_vertical_scale(img)
-            img_for_prices = prepare_image_for_price(img[:, borders_for_prices[0] - 7: img.shape[1]], 7)
+            img_for_prices = prepare_image_for_price(img[:, borders_for_prices[0] - 7: img.shape[1]], 9)
 
             red_data = get_price_data(img_for_prices, red_price_info)
             print(f"Красная цена: {red_data}")
@@ -269,11 +286,13 @@ def test():
 
             all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
             all_price_result = delete_intersecting_and_small(all_price_result)
-            img = highlight_prices(img, borders_for_prices[0], all_price_result, ticker, 1)
+            direction = define_direction(all_price_result)
+            img = highlight_prices(img, borders_for_prices[0], all_price_result, ticker, direction, 1)
             cv2.imwrite(f'results\\{path}', img)
         except:
             print(f"invalid file{path}")
     print("Время работы: {:.2f} с".format(time.time() - start_time))
+    cv2.waitKey(0)
 
 
 def main():
@@ -282,7 +301,7 @@ def main():
     # print(sys.argv)
     start_time = time.time()
 
-    img = cv2.imread("test_images\\f_336611fa2539a0a1.jpg")
+    img = cv2.imread("test_images\\f_754611fa24864966.png")
     # cv2.imshow('img', cv2.resize(img, (640, 640)))
     # cv2.waitKey(0)
     print("Файл открыт")
@@ -307,13 +326,14 @@ def main():
 
     all_price_result = AllPriceResult(red_data, green_data, gray_data, white_data)
     all_price_result = delete_intersecting_and_small(all_price_result)
+    direction = define_direction(all_price_result)
 
     print("Время работы: {:.2f} с".format(time.time() - start_time))
-    highlight_prices(img, borders_for_prices[0], all_price_result, ticker, 0)
+    highlight_prices(img, borders_for_prices[0], all_price_result, ticker, direction, 0)
 
 
 if __name__ == '__main__':
-    main()
+    test()
 
 # ПЛАНЫ
 # обработать пересечение
