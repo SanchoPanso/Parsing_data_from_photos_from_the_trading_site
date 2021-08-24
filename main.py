@@ -1,7 +1,4 @@
-import numpy as np
-import cv2
 import time
-import sys
 import os
 
 from config import *

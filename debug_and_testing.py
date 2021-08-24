@@ -8,14 +8,14 @@ from config import *
 from border_detection import get_all_approx_contours, get_bounding_boxes, get_borders_of_vertical_scale
 from input_output import get_image_using_url, write_into_json
 
-from searching_for_definite_objects import AllPriceResults, PriceResult
+from searching_for_definite_objects import PriceResult
 from searching_for_definite_objects import red_price_info, green_price_info, gray_price_info, white_price_info
 from searching_for_definite_objects import prepare_image_for_price
 from searching_for_definite_objects import get_price_data, define_direction, delete_intersecting_and_small
 from searching_for_definite_objects import get_ticker
 
 
-def highlight_prices(img, border, all_price_result: AllPriceResults, ticker, direction, delay):
+def highlight_prices(img, border, all_price_result: dict, ticker, direction, delay):
 
     img = cv2.putText(img, 'Tiker: ' + ticker,
                       (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
@@ -28,8 +28,13 @@ def highlight_prices(img, border, all_price_result: AllPriceResults, ticker, dir
     img = cv2.line(img, (border, 0), (border, img.shape[0] - 1), (0, 255, 255))
 
     line_lenght = 900
-    colors = [(0, 0, 255), (0, 255, 0), (128, 128, 128), (255, 255, 255)]
-    for i in range(len(all_price_result)):
+    colors = {
+        red_price_key: (0, 0, 255),
+        green_price_key: (0, 255, 0),
+        gray_price_key: (128, 128, 128),
+        white_price_key: (255, 255, 255),
+    }
+    for i in all_price_result.keys():
         price_result = all_price_result[i]
         color = colors[i]
         for price in price_result:
@@ -71,7 +76,12 @@ def test_directory():
             white_data = get_price_data(img_for_prices, white_price_info)
             print(f"Белая цена: {white_data}")
 
-            all_price_results = AllPriceResults(red_data, green_data, gray_data, white_data)
+            all_price_results = {
+                red_price_key: red_data,
+                green_price_key: green_data,
+                gray_price_key: gray_data,
+                white_price_key: white_data,
+            }
             all_price_results = delete_intersecting_and_small(all_price_results)
             direction = define_direction(all_price_results)
             img = highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 1)
@@ -108,7 +118,12 @@ def test_one_file():
     white_data = get_price_data(img_for_prices, white_price_info)
     print(f"Белая цена: {white_data}")
 
-    all_price_results = AllPriceResults(red_data, green_data, gray_data, white_data)
+    all_price_results = {
+        red_price_key: red_data,
+        green_price_key: green_data,
+        gray_price_key: gray_data,
+        white_price_key: white_data,
+    }
     all_price_results = delete_intersecting_and_small(all_price_results)
     direction = define_direction(all_price_results)
 
