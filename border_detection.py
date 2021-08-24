@@ -142,7 +142,7 @@ if __name__ == '__main__':
     img = cv2.imread(f"example.jpg")
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    # cv2.imwrite("images\\current_price_snippet.jpg", cv2.resize(img, None, fx=4, fy=4))
+    # cv2.imwrite("images_for_experiments\\current_price_snippet.jpg", cv2.resize(img, None, fx=4, fy=4))
     borders = get_borders_of_vertical_scale(img)
     print(borders)
     cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])

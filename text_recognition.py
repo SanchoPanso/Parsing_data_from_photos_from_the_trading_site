@@ -72,7 +72,7 @@ def preprocessing_for_text_recognition(img, aug_values=(4, 8)):     # 5.5, 4 Ð·Ð
 
 
 if __name__ == '__main__':
-    img = cv2.imread("images\\current_price_snippet.jpg")
+    img = cv2.imread("images_for_experiments\\current_price_snippet.jpg")
     print(get_digit_only_text_data(img))
 
 

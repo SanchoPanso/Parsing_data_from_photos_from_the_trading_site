@@ -6,7 +6,9 @@ import os
 
 from config import *
 from border_detection import get_borders_of_vertical_scale
-from input_output import get_image_using_url, write_into_json
+
+from input_output import write_into_json, prepare_dict_for_output
+from input_output import get_image, get_image_using_path
 
 from searching_for_definite_objects import AllPriceResults, PriceResult
 from searching_for_definite_objects import red_price_info, green_price_info, gray_price_info, white_price_info
@@ -23,9 +25,8 @@ def main():
     # print(sys.argv)
     start_time = time.time()
 
-    img = cv2.imread("test_images\\f_754611fa24864966.png")
+    img = get_image_using_path("images_for_experiments/example.png")
 
-    print("Файл открыт")
     borders_for_prices = get_borders_of_vertical_scale(img)
     img_for_prices = prepare_image_for_price(img[:, borders_for_prices[0]-7: img.shape[1]], 9)
 
@@ -49,7 +50,10 @@ def main():
     direction = define_direction(all_price_results)
 
     print("Время работы: {:.2f} с".format(time.time() - start_time))
-    highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 0)
+    # highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 0)
+
+    result_dict = prepare_dict_for_output(all_price_results, direction, ticker)
+    write_into_json(output_file_path, result_dict)
 
 
 if __name__ == '__main__':

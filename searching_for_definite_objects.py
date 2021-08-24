@@ -23,7 +23,7 @@ gray_price_info = PriceInfo(np.array(gray_price_lower), np.array(gray_price_uppe
 white_price_info = PriceInfo(np.array(white_price_lower), np.array(white_price_upper), 'white_price_mean_color')
 
 PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h", "reliability"])
-AllPriceResults = namedtuple("AllPriceResult", ['red_data', 'green_data', 'gray_data', 'white_data'])
+AllPriceResults = namedtuple("AllPriceResult", price_data_keys)
 
 current_price_result = PriceResult('', 0, 0, 0, 0, True)
 
@@ -195,32 +195,33 @@ def delete_intersecting_and_small(all_price_results: AllPriceResults):
     for i in range(len(all_price_results)):
         index_blacklist = index_blacklists[i]
         if len(index_blacklist) != 0:
-            all_price_results[i].pop(*index_blacklist[::-1])
+            for j in range(len(index_blacklist) - 1, -1, -1):
+                all_price_results[i].pop(index_blacklist[j])
 
     return all_price_results
 
 
 def define_direction(all_price_result: AllPriceResults):
-    red_data = all_price_result.red_data
-    green_data = all_price_result.green_data
-    gray_data = all_price_result.gray_data
+    red_data = all_price_result._asdict()[red_price_key]
+    green_data = all_price_result._asdict()[green_price_key]
+    gray_data = all_price_result._asdict()[gray_price_key]
 
     if len(red_data) != 0 and len(green_data) != 0:
         if red_data[0].y > green_data[-1].y:
-            return 'up'
+            return direction_up_sign
         else:
-            return 'down'
+            return direction_down_sign
 
     if len(red_data) != 0 and len(gray_data) != 0:
         if red_data[0].y > gray_data[0].y:
-            return 'up'
+            return direction_up_sign
         else:
-            return 'down'
+            return direction_down_sign
 
     if len(gray_data) != 0 and len(green_data) != 0:
         if gray_data[0].y > green_data[-1].y:
-            return 'up'
+            return direction_up_sign
         else:
-            return 'down'
+            return direction_down_sign
 
-    return 'not defined'
+    return direction_down_sign
