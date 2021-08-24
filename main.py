@@ -10,7 +10,7 @@ from border_detection import get_borders_of_vertical_scale
 from input_output import write_into_json, prepare_dict_for_output
 from input_output import get_image, get_image_using_path
 
-from searching_for_definite_objects import AllPriceResults, PriceResult
+from searching_for_definite_objects import PriceResult
 from searching_for_definite_objects import red_price_info, green_price_info, gray_price_info, white_price_info
 from searching_for_definite_objects import prepare_image_for_price
 from searching_for_definite_objects import get_price_data, define_direction, delete_intersecting_and_small
@@ -45,7 +45,13 @@ def main():
     white_data = get_price_data(img_for_prices, white_price_info)
     print(f"Белая цена: {white_data}")
 
-    all_price_results = AllPriceResults(red_data, green_data, gray_data, white_data)
+    all_price_results = {
+        red_price_key: red_data,
+        green_price_key: green_data,
+        gray_price_key: gray_data,
+        white_price_key: white_data,
+    }
+    # all_price_results = AllPriceResults(red_data, green_data, gray_data, white_data)
     all_price_results = delete_intersecting_and_small(all_price_results)
     direction = define_direction(all_price_results)
 

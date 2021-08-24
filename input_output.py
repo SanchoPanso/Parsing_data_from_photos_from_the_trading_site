@@ -43,12 +43,11 @@ def get_image_using_url(original_url: str) -> np.ndarray:
     return img
 
 
-def prepare_dict_for_output(all_price_results: AllPriceResults, direction: str, ticker: str):
-    all_price_results_dict = all_price_results._asdict()
+def prepare_dict_for_output(all_price_results: dict, direction: str, ticker: str):
     result_dict = dict()
     for field in price_data_keys:
         result_dict[field] = []
-        for price_result in all_price_results_dict[field]:
+        for price_result in all_price_results[field]:
             result_dict[field].append(price_result.value)
 
     result_dict[direction_key] = direction

@@ -23,9 +23,6 @@ gray_price_info = PriceInfo(np.array(gray_price_lower), np.array(gray_price_uppe
 white_price_info = PriceInfo(np.array(white_price_lower), np.array(white_price_upper), 'white_price_mean_color')
 
 PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h", "reliability"])
-AllPriceResults = namedtuple("AllPriceResult", price_data_keys)
-
-current_price_result = PriceResult('', 0, 0, 0, 0, True)
 
 
 def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash,
@@ -155,10 +152,10 @@ def prepare_image_for_price(img: np.ndarray, width: int):
     return img_result
 
 
-def delete_intersecting_and_small(all_price_results: AllPriceResults):
+def delete_intersecting_and_small(all_price_results: dict):
     sqr_list = []
     coord_list = []
-    for i in range(len(all_price_results)):
+    for i in all_price_results.keys():
         for j in range(len(all_price_results[i]) - 1, -1, -1):
             sqr_list.append(all_price_results[i][j].w * all_price_results[i][j].h)
 
@@ -166,7 +163,7 @@ def delete_intersecting_and_small(all_price_results: AllPriceResults):
             y1 = all_price_results[i][j].y
             w1 = all_price_results[i][j].w
             h1 = all_price_results[i][j].h
-            for k in range(len(all_price_results)):
+            for k in all_price_results.keys():
                 stop_flag = False
                 if stop_flag:
                     break
@@ -184,15 +181,16 @@ def delete_intersecting_and_small(all_price_results: AllPriceResults):
                         stop_flag = True
 
     mean = np.array(sqr_list).mean()
-    index_blacklists = []
-    for price_result in all_price_results:
+    index_blacklists = dict()
+    for i in all_price_results.keys():
+        price_result = all_price_results[i]
         index_blacklist = []
-        for i in range(len(price_result)):
-            if price_result[i].w * price_result[i].h < 0.6 * mean:
-                index_blacklist.append(i)
-        index_blacklists.append(index_blacklist)
+        for j in range(len(price_result)):
+            if price_result[j].w * price_result[j].h < 0.6 * mean:
+                index_blacklist.append(j)
+        index_blacklists[i] = index_blacklist
 
-    for i in range(len(all_price_results)):
+    for i in all_price_results.keys():
         index_blacklist = index_blacklists[i]
         if len(index_blacklist) != 0:
             for j in range(len(index_blacklist) - 1, -1, -1):
@@ -201,10 +199,11 @@ def delete_intersecting_and_small(all_price_results: AllPriceResults):
     return all_price_results
 
 
-def define_direction(all_price_result: AllPriceResults):
-    red_data = all_price_result._asdict()[red_price_key]
-    green_data = all_price_result._asdict()[green_price_key]
-    gray_data = all_price_result._asdict()[gray_price_key]
+def define_direction(all_price_result: dict):
+
+    red_data = all_price_result[red_price_key]
+    green_data = all_price_result[green_price_key]
+    gray_data = all_price_result[gray_price_key]
 
     if len(red_data) != 0 and len(green_data) != 0:
         if red_data[0].y > green_data[-1].y:
