@@ -22,12 +22,26 @@ green_price_info = PriceInfo(np.array(green_price_lower), np.array(green_price_u
 gray_price_info = PriceInfo(np.array(gray_price_lower), np.array(gray_price_upper), 'gray_price_mean_color')
 white_price_info = PriceInfo(np.array(white_price_lower), np.array(white_price_upper), 'white_price_mean_color')
 
-PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h", "reliability"])
+
+class PriceResult:
+    def __init__(self, value, x, y, w, h, reliability):
+        self.value = value
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.reliability = reliability
+
+    def __str__(self):
+        return f"PriceResults(value={self.value}, x={self.x}, y={self.y}, " \
+               f"w={self.w}, h={self.h}, reliability={self.reliability})"
+
+
+# PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h", "reliability"])
 
 
 def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash,
                              extra_cropping_width: int = 1):
-    global current_price_result
     price_pattern = r"\d{1,}[.]\d{1,}"
     # time_pattern = r"\d{2}[:]\d{2}"
     price_result = []
@@ -224,3 +238,44 @@ def define_direction(all_price_result: dict):
             return direction_down_sign
 
     return direction_down_sign
+
+
+def mark_wrong_price_results(all_price_results: dict):
+    number_of_digits_before_dot_list = []
+    number_of_digits_after_dot_list = []
+    for key in all_price_results.keys():
+        price_results = all_price_results[key]
+        for price_result in price_results:
+            digits_before_dot = price_result.value.split('.')[0]
+            number_of_digits_before_dot_list.append(len(digits_before_dot))
+
+            digits_after_dot = price_result.value.split('.')[1]
+            number_of_digits_after_dot_list.append(len(digits_after_dot))
+
+    digits_before_dot_stat = [0]*max(number_of_digits_before_dot_list)
+    digits_after_dot_stat = [0]*max(number_of_digits_after_dot_list)
+
+    for i in range(len(number_of_digits_after_dot_list)):
+        digits_before_dot_stat[number_of_digits_before_dot_list[i] - 1] += 1
+        digits_after_dot_stat[number_of_digits_after_dot_list[i] - 1] += 1
+
+    digits_before_dot_mode = np.array(digits_before_dot_stat).argmax() + 1
+    digits_after_dot_mode = np.array(digits_after_dot_stat).argmax() + 1
+
+    for key in all_price_results.keys():
+        for i in range(len(all_price_results[key])):
+
+            price_result = all_price_results[key][i]
+            digits_before_dot = price_result.value.split('.')[0]
+            digits_after_dot = price_result.value.split('.')[1]
+
+            if len(digits_before_dot) != digits_before_dot_mode:
+                all_price_results[key][i].reliability = False
+            if len(digits_after_dot) != digits_after_dot_mode:
+                all_price_results[key][i].reliability = False
+
+    return all_price_results
+
+
+
+# добавить обработку длинного числа

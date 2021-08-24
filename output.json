@@ -1,14 +1,19 @@
 {
     "red_price": [
-        "3465.05"
+        "65.000"
     ],
     "green_price": [
-        "2461.22"
+        "50.000"
     ],
     "gray_price": [
-        "3078.50"
+        "60.490"
     ],
-    "white_price": [],
+    "white_price": [
+        "3.239",
+        "55.995",
+        "56.199",
+        "59.830"
+    ],
     "direction": "down",
-    "ticker": "ETHUSDTPERP"
+    "ticker": "SOLUSDTPCR"
 }
