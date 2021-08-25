@@ -23,9 +23,9 @@ def get_all_approx_contours(img: np.ndarray):
                 poly_contours.append(approx)
         poly_contours_list.append(poly_contours)
 
-        poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
-        cv2.imshow('img', cv2.resize(poly, (160, 720)))
-        cv2.waitKey(1)
+        # poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
+        # cv2.imshow('img', cv2.resize(poly, (160, 720)))
+        # cv2.waitKey(1)
 
     return poly_contours_list
 
@@ -63,7 +63,7 @@ def get_borders_of_vertical_scale(img):
     # cv2.waitKey(1000)
     borders = []
     sums = []
-    for x in range(width - 1, int(0.9 * width), -1): # на будущее, переработать
+    for x in range(width - 1, int(0.9 * width), -1):
         sum = 0
         for y in range(0, height):
             if edged[y, x] != 0:
@@ -88,21 +88,5 @@ def get_borders_of_vertical_scale(img):
 
 
 if __name__ == '__main__':
-    img = cv2.imread(f"example.jpg")
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    # cv2.imwrite("images_for_experiments\\current_price_snippet.jpg", cv2.resize(img, None, fx=4, fy=4))
-    borders = get_borders_of_vertical_scale(img)
-    print(borders)
-    cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])
-    cv2.waitKey(0)
-
-    # img_paths = os.listdir("test_images")
-    # print(img_paths)
-    # for path in img_paths:
-    #     img = cv2.imread(f"test_images\\{path}")
-    #     borders = get_borders_of_vertical_scale(img)
-    #     print(borders)
-    #     cv2.imshow("Borders", img[:, borders[0]:img.shape[1]])
-    #     cv2.waitKey(200)
+    pass
 

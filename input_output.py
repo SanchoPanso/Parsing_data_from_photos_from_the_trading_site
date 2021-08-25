@@ -11,12 +11,17 @@ from searching_for_definite_objects import PriceResult
 
 
 def get_image():
-    print(sys.argv)
+    """get image using command line arguments"""
+    # print(sys.argv)
+    if len(sys.argv) == 1:
+        print("Имя файла не указано")
+        return None
     path = sys.argv[1]
     return get_image_using_path(path)
 
 
 def get_image_using_path(path: str):
+    """get image using paths"""
     if not os.path.exists(path):
         print("Файл не найден")
         return None
@@ -44,6 +49,7 @@ def get_image_using_url(original_url: str) -> np.ndarray:
 
 
 def prepare_dict_for_output(all_price_results: dict, direction: str, ticker: str):
+    """collect prices, direction, ticker into a single dictionary"""
     result_dict = dict()
     for field in price_data_keys:
         result_dict[field] = []
@@ -57,5 +63,6 @@ def prepare_dict_for_output(all_price_results: dict, direction: str, ticker: str
 
 
 def write_into_json(filename: str, result_dict: dict):
+    """write result dictionary into a json file"""
     with open(filename, "w") as file:
         json.dump(result_dict, file, indent=4)

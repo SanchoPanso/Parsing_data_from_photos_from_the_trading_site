@@ -103,7 +103,7 @@ def test_one_file():
     # print(sys.argv)
     start_time = time.time()
 
-    img = get_image_using_path("images_for_experiments\\example.jpg")
+    img = get_image_using_path("test_images//f_009611fa25397e3f.jpg")
 
     borders_for_prices = get_borders_of_vertical_scale(img)
     for border in borders_for_prices:
@@ -113,16 +113,16 @@ def test_one_file():
         print(f"Тикер: {get_ticker(img)}")
 
         red_data = get_price_data(img_for_prices, red_price_info)
-        print(f"Красная цена: {[str(elem) for elem in red_data]}")
+        print(f"Красная цена: {red_data}")
 
         green_data = get_price_data(img_for_prices, green_price_info)
-        print(f"Зеленая цена: {[str(elem) for elem in green_data]}")
+        print(f"Зеленая цена: {green_data}")
 
         gray_data = get_price_data(img_for_prices, gray_price_info)
-        print(f"Серая цена: {[str(elem) for elem in gray_data]}")
+        print(f"Серая цена: {gray_data}")
 
         white_data = get_price_data(img_for_prices, white_price_info)
-        print(f"Белая цена: {[str(elem) for elem in white_data]}")
+        print(f"Белая цена: {white_data}")
 
         if len(red_data + green_data + gray_data + white_data) == 0:
             continue

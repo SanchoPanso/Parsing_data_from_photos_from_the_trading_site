@@ -45,12 +45,9 @@ class TextCash:
                 else:
                     self.marks[i] += 1
         if flag:
-            print(new_text)
             self.bboxes.append(bbox)
             self.text.append(new_text)
             self.marks.append(0)
-
-# продумать обработку мест с долго не распознающимся текстом
 
 
 def get_digit_only_text_data(img):

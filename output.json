@@ -1,19 +1,16 @@
 {
     "red_price": [
-        "65.000"
+        "0.00103000"
     ],
     "green_price": [
-        "50.000"
+        "0.00084000"
     ],
     "gray_price": [
-        "60.490"
+        "0.00096000"
     ],
     "white_price": [
-        "3.239",
-        "55.995",
-        "56.199",
-        "59.830"
+        "0.00087500"
     ],
     "direction": "down",
-    "ticker": "SOLUSDTPCR"
+    "ticker": "BAOPERP"
 }

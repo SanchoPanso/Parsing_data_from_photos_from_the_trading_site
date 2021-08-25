@@ -10,8 +10,8 @@ import re
 
 from config import *
 from preprocessing import preprocessing_for_text_recognition
-from color_detection import get_filtered_by_colors_image, get_mean_color, get_nearest_mean_color, check_color_proximity
-from border_detection import get_all_approx_contours, get_bounding_boxes, get_borders_of_vertical_scale
+from color_detection import get_filtered_by_colors_image, get_mean_color, check_color_proximity
+from border_detection import get_all_approx_contours, get_bounding_boxes
 from text_recognition import get_digit_only_text_data, get_text, TextCash
 
 example_url = "https://www.tradingview.com/x/nShwrpHU/"
@@ -42,9 +42,6 @@ class PriceResult:
                f"w={self.w}, h={self.h}, reliability={self.reliability})"
 
 
-# PriceResult = namedtuple("PriceResult", ["value", "x", "y", "w", "h", "reliability"])
-
-
 def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, text_cash: TextCash,
                              extra_cropping_width: int = 0):
     price_pattern = r"\d{1,}[.]\d{1,}"
@@ -66,14 +63,13 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
             current_mean_color = get_mean_color(cropped_img)
             if not check_color_proximity(mean_color_key, current_mean_color):
                 break
-            # if get_nearest_mean_color(current_mean_color) != mean_color:
-            #     break
+
             preprocessed_img_list = preprocessing_for_text_recognition.preprocess(cropped_img)
 
             search = False
             for preprocessed_img in preprocessed_img_list:
-                cv2.imshow('img', preprocessed_img)
-                cv2.waitKey(1)
+                # cv2.imshow('img', preprocessed_img)
+                # cv2.waitKey(1)
 
                 chars = get_digit_only_text_data(preprocessed_img)['text']
                 text = ''
@@ -164,9 +160,9 @@ def get_ticker(img: np.ndarray):
     return ticker
 
 
-def prepare_image_for_price(img: np.ndarray, width: int):
+def prepare_image_for_price(img: np.ndarray, border: int, width: int):
     """fill with black color the left border of the cropped vertical scale"""
-    img_result = img.copy()
+    img_result = img[:, border - width - 2: img.shape[1]]
     for x in range(width):
         for y in range(img.shape[0]):
             for canal in range(3):
@@ -283,7 +279,3 @@ def mark_wrong_price_results(all_price_results: dict):
                 all_price_results[key][i].reliability = False
 
     return all_price_results
-
-
-
-# добавить обработку длинного числа
