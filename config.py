@@ -5,7 +5,7 @@ green_price_lower = [20, 70, 0]
 green_price_upper = [110, 255, 255]
 
 gray_price_lower = [0, 10, 120]
-gray_price_upper = [179, 36, 255]
+gray_price_upper = [179, 36, 156]
 
 white_price_lower = [0, 0, 230]
 white_price_upper = [179, 14, 255]

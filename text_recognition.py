@@ -10,24 +10,47 @@ if os.name == 'nt':
 
 
 class TextCash:
-    def __init__(self, threshold=30):
+    def __init__(self, threshold=30, max_n_marks=2):
         self.bboxes = []
         self.text = []
+        self.marks = []
         self.threshold = threshold
+        self.max_n_marks = max_n_marks
 
-    def check(self, querry_bbox):
+    def check(self, query_bbox):
+        index = -1
         for i in range(len(self.bboxes)):
             cash_bbox = self.bboxes[i]
-            if ((np.array(cash_bbox) - np.array(querry_bbox))**2).sum() < self.threshold:
-                return i
-        return -1
+            if ((np.array(cash_bbox) - np.array(query_bbox))**2).sum() < self.threshold:
+                if len(self.text[i]) > 0:
+                    index = i
+                elif index < 0 and self.marks[i] < self.max_n_marks:
+                    index = -2
+        return index
 
     def add(self, bbox, text):
         self.bboxes.append(bbox)
         self.text.append(text)
+        self.marks.append(0)
 
-    def update(self, index, text):
-        self.text[index] = text
+    def upsert(self, bbox, new_text):
+        flag = True
+        for i in range(len(self.bboxes)):
+            cash_bbox = self.bboxes[i]
+            if ((np.array(cash_bbox) - np.array(bbox)) ** 2).sum() < self.threshold:
+                if len(new_text) > len(self.text[i]):
+                    # print(new_text)
+                    self.text[i] = new_text
+                    self.marks[i] = 0
+                else:
+                    self.marks[i] += 1
+        if flag:
+            print(new_text)
+            self.bboxes.append(bbox)
+            self.text.append(new_text)
+            self.marks.append(0)
+
+# продумать обработку мест с долго не распознающимся текстом
 
 
 def get_digit_only_text_data(img):

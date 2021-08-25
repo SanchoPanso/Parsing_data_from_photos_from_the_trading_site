@@ -14,7 +14,7 @@ from searching_for_definite_objects import get_price_data, define_direction, del
 from searching_for_definite_objects import get_ticker
 from searching_for_definite_objects import mark_wrong_price_results
 
-from debug_and_testing import highlight_prices
+from debugging_and_testing import highlight_prices
 
 
 def main():

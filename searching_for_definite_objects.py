@@ -54,10 +54,11 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
         x, y, w, h = bbox
 
         cash_checking_result = text_cash.check(bbox)
-        if cash_checking_result != -1:
-            if text_cash.text[cash_checking_result] != '':
-                price_result.append(PriceResult(text_cash.text[cash_checking_result], x, y, w, h, True))
-                continue
+        if cash_checking_result >= 0:
+            price_result.append(PriceResult(text_cash.text[cash_checking_result], x, y, w, h, True))
+            continue
+        elif cash_checking_result == -2:
+            continue
 
         if 2.15 <= w / h <= 4 and w * h > 32:
             valid_text = ""
@@ -85,8 +86,8 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
             if search:
                 price_result.append(PriceResult(valid_text, x, y, w, h, True))
 
-            if valid_text != '':
-                text_cash.add(bbox, valid_text)
+            # if valid_text != '':
+            text_cash.upsert(bbox, valid_text)
     return price_result, text_cash
 
 
