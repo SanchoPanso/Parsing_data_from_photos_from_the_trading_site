@@ -57,7 +57,7 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
         elif cash_checking_result == -2:
             continue
 
-        if 2.15 <= w / h <= 4 and w * h > 32:
+        if 2.15 <= w / h <= 5.5 and w * h > 32:
             valid_text = ""
             cropped_img = img[y:y + h, x + extra_cropping_width:x + w]
             current_mean_color = get_mean_color(cropped_img)
@@ -68,8 +68,9 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
 
             search = False
             for preprocessed_img in preprocessed_img_list:
-                # cv2.imshow('img', preprocessed_img)
-                # cv2.waitKey(1)
+                if debug_mode:
+                    cv2.imshow('img', preprocessed_img)
+                    cv2.waitKey(dbg_delay)
 
                 chars = get_digit_only_text_data(preprocessed_img)['text']
                 text = ''
@@ -162,7 +163,7 @@ def get_ticker(img: np.ndarray):
 
 def prepare_image_for_price(img: np.ndarray, border: int, width: int):
     """fill with black color the left border of the cropped vertical scale"""
-    img_result = img[:, border - width - 2: img.shape[1]]
+    img_result = img[:, border - width + 2: img.shape[1]].copy()
     for x in range(width):
         for y in range(img.shape[0]):
             for canal in range(3):

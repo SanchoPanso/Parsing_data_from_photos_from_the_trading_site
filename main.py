@@ -1,3 +1,4 @@
+import os
 from config import *
 from border_detection import get_borders_of_vertical_scale
 
@@ -17,7 +18,7 @@ import sys
 def main():
     """The main entry point of the application"""
 
-    img = get_image()
+    img = get_image(__file__)
     # if getting the image is unable, to exit the program is necessary
     if img is None:
         sys.exit()

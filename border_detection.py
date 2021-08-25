@@ -4,6 +4,7 @@ from color_detection import get_filtered_by_colors_image
 import os
 import matplotlib.pyplot as plt
 from preprocessing import preprocessing_for_border_detection
+from config import *
 
 
 def get_all_approx_contours(img: np.ndarray):
@@ -23,9 +24,10 @@ def get_all_approx_contours(img: np.ndarray):
                 poly_contours.append(approx)
         poly_contours_list.append(poly_contours)
 
-        # poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
-        # cv2.imshow('img', cv2.resize(poly, (160, 720)))
-        # cv2.waitKey(1)
+        if debug_mode:
+            poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
+            cv2.imshow('img', cv2.resize(poly, (160, 720)))
+            cv2.waitKey(dbg_delay)
 
     return poly_contours_list
 

@@ -10,14 +10,22 @@ from config import *
 from searching_for_definite_objects import PriceResult
 
 
-def get_image():
+def get_image(current_ex_file):
     """get image using command line arguments"""
-    # print(sys.argv)
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 0:
         print("Имя файла не указано")
         return None
-    path = sys.argv[1]
-    return get_image_using_path(path)
+    if os.path.basename(sys.argv[0]) == os.path.basename(current_ex_file):
+        if len(sys.argv) > 1:
+            path = sys.argv[1]
+            print(path)
+            return get_image_using_path(path)
+        else:
+            print("Имя файла не указано")
+            return None
+    else:
+        path = sys.argv[0]
+        return get_image_using_path(path)
 
 
 def get_image_using_path(path: str):

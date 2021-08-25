@@ -4,9 +4,10 @@ import pytesseract
 from pytesseract import Output
 import re
 import os
+from config import windows_tesseract_path
 
 if os.name == 'nt':
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = windows_tesseract_path
 
 
 class TextCash:

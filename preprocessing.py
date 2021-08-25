@@ -169,9 +169,9 @@ class Preprocessing:
 
 preprocessing_for_text_recognition = Preprocessing()
 preprocessing_for_text_recognition.add(get_grayscale())
-preprocessing_for_text_recognition.add(augment((4, 8)))
+preprocessing_for_text_recognition.add(augment((4, 5.5, 8)))
 preprocessing_for_text_recognition.add(thresholding())
-preprocessing_for_text_recognition.add(trimming((3, 7, 0), (0,)))
+preprocessing_for_text_recognition.add(trimming((3, 7, 1, 0), (0,)))
 
 preprocessing_for_border_detection = Preprocessing()
 preprocessing_for_border_detection.add(get_grayscale())

@@ -65,33 +65,34 @@ def test_directory():
         try:
             print("##################")
             print(path)
-            img = cv2.imread(f"test_images\\{path}")
+            img = cv2.imread(os.path.join("test_images", path))
             ticker = get_ticker(img)
             borders_for_prices = get_borders_of_vertical_scale(img)
-            img_for_prices = prepare_image_for_price(img[:, borders_for_prices[0] - 7: img.shape[1]], 9)
+            for border in borders_for_prices:
+                img_for_prices = prepare_image_for_price(img, border, 7)
 
-            red_data = get_price_data(img_for_prices, red_price_info)
-            print(f"Красная цена: {red_data}")
+                red_data = get_price_data(img_for_prices, red_price_info)
+                print(f"Красная цена: {red_data}")
 
-            gray_data = get_price_data(img_for_prices, gray_price_info)
-            print(f"Серая цена: {gray_data}")
+                gray_data = get_price_data(img_for_prices, gray_price_info)
+                print(f"Серая цена: {gray_data}")
 
-            green_data = get_price_data(img_for_prices, green_price_info)
-            print(f"Зеленая цена: {green_data}")
+                green_data = get_price_data(img_for_prices, green_price_info)
+                print(f"Зеленая цена: {green_data}")
 
-            white_data = get_price_data(img_for_prices, white_price_info)
-            print(f"Белая цена: {white_data}")
+                white_data = get_price_data(img_for_prices, white_price_info)
+                print(f"Белая цена: {white_data}")
 
-            all_price_results = {
-                red_price_key: red_data,
-                green_price_key: green_data,
-                gray_price_key: gray_data,
-                white_price_key: white_data,
-            }
-            all_price_results = delete_intersecting_and_small(all_price_results)
-            direction = define_direction(all_price_results)
-            img = highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 1)
-            cv2.imwrite(f'results\\{path}', img)
+                all_price_results = {
+                    red_price_key: red_data,
+                    green_price_key: green_data,
+                    gray_price_key: gray_data,
+                    white_price_key: white_data,
+                }
+                all_price_results = delete_intersecting_and_small(all_price_results)
+                direction = define_direction(all_price_results)
+                img = highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 1)
+                cv2.imwrite(f'results\\{path}', img)
         except Exception as e:
             print(e)
             print(f"There is a trouble with file{path}")
@@ -103,11 +104,11 @@ def test_one_file():
     # print(sys.argv)
     start_time = time.time()
 
-    img = get_image_using_path("test_images//f_009611fa25397e3f.jpg")
+    img = get_image_using_path(os.path.join("test_images", "f_167611fa2539237d.jpg"))
 
     borders_for_prices = get_borders_of_vertical_scale(img)
     for border in borders_for_prices:
-        img_for_prices = prepare_image_for_price(img[:, border - 7: img.shape[1]], 9)
+        img_for_prices = prepare_image_for_price(img, border, 9)
 
         ticker = get_ticker(img)
         print(f"Тикер: {get_ticker(img)}")
@@ -143,4 +144,4 @@ def test_one_file():
 
 
 if __name__ == '__main__':
-    test_one_file()
+    test_directory()
