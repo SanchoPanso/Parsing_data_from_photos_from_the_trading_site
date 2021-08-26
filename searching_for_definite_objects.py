@@ -144,7 +144,7 @@ def get_ticker(img: np.ndarray):
     get ticker with cropping original image and searching the ticker pattern
     """
     ticker_pattern = r'[A-Z]{2,}[:-][A-Z]{2,}'
-    img_for_ticker = img[:int(img.shape[0] * 0.25), :int(img.shape[1] * 0.5)]
+    img_for_ticker = img[:int(img.shape[0] * 0.2), :int(img.shape[1] * 0.3)]
     filtered_img = get_filtered_by_colors_image(img_for_ticker, np.array(ticker_lower), np.array(ticker_upper))
     thr_img = cv2.threshold(cv2.cvtColor(filtered_img, cv2.COLOR_BGR2GRAY), 0, 255,
                             cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]

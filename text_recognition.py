@@ -11,7 +11,7 @@ if os.name == 'nt':
 
 
 class TextCash:
-    def __init__(self, threshold=30, max_n_marks=1):
+    def __init__(self, threshold=30, max_n_marks=2):
         self.bboxes = []
         self.text = []
         self.marks = []
