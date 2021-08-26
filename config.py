@@ -34,7 +34,7 @@ gray_price_key = 'gray_price'
 white_price_key = 'white_price'
 price_data_keys = [red_price_key, green_price_key, gray_price_key, white_price_key]
 
-debug_mode = True
+debug_mode = False
 dbg_delay = 1
 windows_tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 output_file_path = "output.json"

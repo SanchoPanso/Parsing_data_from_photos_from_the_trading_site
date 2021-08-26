@@ -11,7 +11,7 @@ if os.name == 'nt':
 
 
 class TextCash:
-    def __init__(self, threshold=30, max_n_marks=2):
+    def __init__(self, threshold=30, max_n_marks=1):
         self.bboxes = []
         self.text = []
         self.marks = []
@@ -54,7 +54,7 @@ class TextCash:
 def get_digit_only_text_data(img):
     try:
         text_data = pytesseract.image_to_data(img, lang='eng', output_type=Output.DICT,
-                                              config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789.:')
+                                              config='--psm 10 --oem 3 -c tessedit_char_whitelist=-0123456789.:')
         return text_data
     except Exception:
         return {'text': []}

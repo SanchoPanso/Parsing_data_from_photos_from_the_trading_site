@@ -1,10 +1,6 @@
 import cv2
 import numpy as np
 
-###################
-# Module is under development and now is not used
-##################
-
 
 # get grayscale image
 def get_grayscale():
@@ -14,9 +10,20 @@ def get_grayscale():
 
 
 # thresholding
-def thresholding():
+def thresholding(inv=False):
     def func(img):
-        return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        sq = img.shape[0]*img.shape[1]
+        if inv:
+            mn = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1].sum() / sq
+            if mn > 150:
+                return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+            if mn < 100:
+                return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+            return [cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1],
+                    cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]]
+        else:
+            return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     return func
 
 
@@ -115,9 +122,14 @@ def augment(aug_value: int or range or tuple):
 
 def trimming(widths_left, widths_right):
     def func(img):
+        original_width = img.shape[1]
+        result = []
         for w_left in widths_left:
             for w_right in widths_right:
-                return img[:, w_left: img.shape[1] - w_right]
+                im = img.copy()
+                im = im[:, w_left: original_width - w_right]
+                result.append(im)
+        return result
     return func
 
 
@@ -170,8 +182,8 @@ class Preprocessing:
 preprocessing_for_text_recognition = Preprocessing()
 preprocessing_for_text_recognition.add(get_grayscale())
 preprocessing_for_text_recognition.add(augment((4, 5.5, 8)))
-preprocessing_for_text_recognition.add(thresholding())
-preprocessing_for_text_recognition.add(trimming((3, 7, 1, 0), (0,)))
+preprocessing_for_text_recognition.add(thresholding(True))
+preprocessing_for_text_recognition.add(trimming((0,), (0,)))
 
 preprocessing_for_border_detection = Preprocessing()
 preprocessing_for_border_detection.add(get_grayscale())

@@ -188,5 +188,5 @@ def detection_tools_hsv(filename):
 
 
 if __name__ == '__main__':
-    detection_tools_hsv("images_for_experiments\\example.jpg")
+    detection_tools_hsv("example.jpg")
 
