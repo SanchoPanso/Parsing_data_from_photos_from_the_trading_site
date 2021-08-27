@@ -107,9 +107,9 @@ def filter_result_text(price_result_list: list):
     for i in range(len(max_len_price_result_list) - 1):
         price_result_list = sorted(max_len_price_result_list[i], key=lambda x: float(x.value))
         for j in range(max_len):
-            if max_len_price_result_list[i][j].y < max_len_price_result_list[i][j].y:
+            if price_result_list[j].y < price_result_list[j].y:
                 break
-        return max_len_price_result_list[0]
+        return max_len_price_result_list[i]
 
     return max_len_price_result_list[0]
 
@@ -178,7 +178,7 @@ def prepare_image_for_price(img: np.ndarray, border: int, width: int):
     return img_result
 
 
-def delete_intersecting_and_small(all_price_results: dict):
+def delete_intersecting_and_too_small_or_big(all_price_results: dict):
     sqr_list = []
     coord_list = []
     for i in all_price_results.keys():
@@ -212,7 +212,8 @@ def delete_intersecting_and_small(all_price_results: dict):
         price_result = all_price_results[i]
         index_blacklist = []
         for j in range(len(price_result)):
-            if price_result[j].w * price_result[j].h < 0.6 * mean:
+            current_sq = price_result[j].w * price_result[j].h
+            if current_sq < 0.6 * mean or current_sq > 1.4 * mean:
                 index_blacklist.append(j)
         index_blacklists[i] = index_blacklist
 
@@ -282,7 +283,10 @@ def mark_wrong_price_results(all_price_results: dict):
             digits_after_dot = price_result.value.split('.')[1]
 
             if len(digits_before_dot) != digits_before_dot_mode:
-                all_price_results[key][i].reliability = False
+                if price_result.value[0] not in ['1', '2']:
+                    if len(digits_before_dot) - int(digits_before_dot_mode) == 1:
+                        all_price_results[key][i].value = price_result.value[1:]
+                    all_price_results[key][i].reliability = False
             if len(digits_after_dot) != digits_after_dot_mode:
                 all_price_results[key][i].reliability = False
 

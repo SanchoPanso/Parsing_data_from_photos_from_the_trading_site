@@ -130,10 +130,10 @@ def get_borders_of_vertical_scale(img):
         sums.append(sum/height)
         if sum/height > 0.45:
             if len(borders) > 0:
-                if borders[-1] - x < 10: # 5 как то назвать
+                if borders[-1] - x < 5:
                     continue
             else:
-                if width - 1 - x < 15:
+                if width - 1 - x < 17:
                     continue
             borders.append(x)
     # mean = np.array(sums).mean()

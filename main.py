@@ -8,7 +8,7 @@ from input_output import get_image, get_image_using_path
 from searching_for_definite_objects import PriceResult
 from searching_for_definite_objects import red_price_info, green_price_info, gray_price_info, white_price_info
 from searching_for_definite_objects import prepare_image_for_price
-from searching_for_definite_objects import get_price_data, define_direction, delete_intersecting_and_small
+from searching_for_definite_objects import get_price_data, define_direction, delete_intersecting_and_too_small_or_big
 from searching_for_definite_objects import get_ticker
 from searching_for_definite_objects import mark_wrong_price_results
 
@@ -54,7 +54,7 @@ def main():
             gray_price_key: gray_data,
             white_price_key: white_data,
         }
-        all_price_results = delete_intersecting_and_small(all_price_results)
+        all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)
         all_price_results = mark_wrong_price_results(all_price_results)
         direction = define_direction(all_price_results)
         print("Результаты обработаны")
