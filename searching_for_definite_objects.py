@@ -14,8 +14,6 @@ from color_detection import get_filtered_by_colors_image, get_mean_color, check_
 from border_detection import get_all_approx_contours, get_bounding_boxes, get_ticker_borders
 from text_recognition import get_digit_only_text_data, get_text, TextCash
 
-example_url = "https://www.tradingview.com/x/nShwrpHU/"
-
 PriceInfo = namedtuple("PriceInfo", ["lower", "upper", "mean_color"])
 
 red_price_info = PriceInfo(np.array(red_price_lower), np.array(red_price_upper), 'red_price_mean_color')
