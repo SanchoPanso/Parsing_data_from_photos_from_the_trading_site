@@ -13,21 +13,17 @@ example_url = "https://www.tradingview.com/x/nShwrpHU/"
 example_path = "example.jpg"
 
 
-def get_image(current_ex_file):
+def get_image():
     """get image using command line arguments"""
-    if len(sys.argv) == 0:
-        print("Имя файла не указано")
-        return None
-    if os.path.basename(sys.argv[0]) == os.path.basename(current_ex_file):
-        if len(sys.argv) > 1:
-            path = sys.argv[1]
-            print(path)
-            return get_image_using_path(path)
-        else:
-            print("Имя файла не указано")
-            return None
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path_or_url', nargs='?', default=example_path)
+    parser.add_argument('-u', '--url', action='store_true', default=False)
+    namespace = parser.parse_args(sys.argv[1:])
+    if namespace.url:
+        url = namespace.path_or_url
+        return get_image_using_url(url)
     else:
-        path = sys.argv[0]
+        path = namespace.path_or_url
         return get_image_using_path(path)
 
 
@@ -57,6 +53,8 @@ def get_image_using_url(original_url: str) -> np.ndarray or None:
         img = cv2.imdecode(img_arr, -1)
         if img is None:
             print("Не удалось открыть файл")
+        else:
+            print("Файл открыт")
         return img
     except Exception as e:
         print(e)

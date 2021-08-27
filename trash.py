@@ -4,6 +4,22 @@ import requests
 from bs4 import BeautifulSoup
 
 
+# if len(sys.argv) == 0:
+    #     print("Имя файла не указано")
+    #     return None
+    # if os.path.basename(sys.argv[0]) == os.path.basename(current_ex_file):
+    #     if len(sys.argv) > 1:
+    #         path = sys.argv[1]
+    #         print(path)
+    #         return get_image_using_path(path)
+    #     else:
+    #         print("Имя файла не указано")
+    #         return None
+    # else:
+    #     path = sys.argv[0]
+    #     return get_image_using_path(path)
+
+
 # def preprocessing_for_border_detection(img: np.ndarray,
 #                                        gauss_kernel_size,
 #                                        morph_kernel_size1,

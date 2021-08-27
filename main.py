@@ -18,7 +18,7 @@ import sys
 def main():
     """The main entry point of the application"""
 
-    img = get_image(__file__)
+    img = get_image()
     # if getting the image is unable, to exit the program is necessary
     if img is None:
         sys.exit()
