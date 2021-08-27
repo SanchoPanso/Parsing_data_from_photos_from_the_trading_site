@@ -3,7 +3,7 @@ import numpy as np
 from color_detection import get_filtered_by_colors_image
 import os
 import matplotlib.pyplot as plt
-from preprocessing import preprocessing_for_border_detection
+from preprocessing import Preprocessing, preprocessing_for_border_detection, prepr_for_ticker_border
 from config import *
 
 
@@ -52,6 +52,63 @@ def get_bounding_boxes(contours_list):
         bboxes_list.append(bboxes)
 
     return bboxes_list
+
+
+# def get_borders(img: np.ndarray,
+#                 min_dist_from_edge: int,
+#                 min_dist_between_borders: int,
+#                 prepr: Preprocessing = prepr_for_ticker_border,
+#                 borders_is_vertical: bool = True,
+#                 start_from_zero: bool = True):
+#
+#     prepr_img = prepr.preprocess(img)
+#     if not borders_is_vertical:
+#         prepr_img = prepr_img.T
+#     height = img.shape[0]
+#     width = img.shape[1]
+#
+#     borders = []
+#     x_range = range(width) if start_from_zero else range(width - 1, width, -1)
+#     for x in x_range:
+#         sum_of_edged = 0
+#         for y in range(0, height):
+#             if prepr_img[y, x] != 0:
+#                 sum_of_edged += 1
+#         if sum_of_edged/height > 0.45:
+#             if len(borders) > 0:
+#                 if borders[-1] - x < min_dist_between_borders:
+#                     continue
+#             else:
+#                 if width - 1 - x < min_dist_from_edge:
+#                     continue
+#             borders.append(x)
+
+
+def get_ticker_borders(img: np.ndarray,
+                       min_dist_from_edge: int,
+                       min_dist_between_borders: int,
+                       ):
+    height = img.shape[0]
+    width = img.shape[1]
+    prepr_img = prepr_for_ticker_border.preprocess(img)
+    borders = []
+    for y in range(height):
+        if y == height - 1:
+            borders.append(y)
+            break
+        sum_of_edged = 0
+        for x in range(0, width):
+            if prepr_img[y, x] != 0:
+                sum_of_edged += 1
+        if sum_of_edged/width > 0.45:
+            if len(borders) > 0:
+                if borders[-1] - y < min_dist_between_borders:
+                    continue
+            else:
+                if width - 1 - y < min_dist_from_edge:
+                    continue
+            borders.append(y)
+    return borders
 
 
 def get_borders_of_vertical_scale(img):

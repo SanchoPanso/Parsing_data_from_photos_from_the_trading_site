@@ -11,7 +11,7 @@ import re
 from config import *
 from preprocessing import preprocessing_for_text_recognition
 from color_detection import get_filtered_by_colors_image, get_mean_color, check_color_proximity
-from border_detection import get_all_approx_contours, get_bounding_boxes
+from border_detection import get_all_approx_contours, get_bounding_boxes, get_ticker_borders
 from text_recognition import get_digit_only_text_data, get_text, TextCash
 
 example_url = "https://www.tradingview.com/x/nShwrpHU/"
@@ -57,7 +57,7 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
         elif cash_checking_result == -2:
             continue
 
-        if 2.15 <= w / h <= 5.5 and w * h > 32:
+        if 2.15 <= w / h <= 5.5 and w * h > 200:
             valid_text = ""
             cropped_img = img[y:y + h, x + extra_cropping_width:x + w]
             current_mean_color = get_mean_color(cropped_img)
@@ -144,22 +144,29 @@ def get_ticker(img: np.ndarray):
     get ticker with cropping original image and searching the ticker pattern
     """
     ticker_pattern = r'[A-Z]{2,}[:-][A-Z]{2,}'
-    img_for_ticker = img[:int(img.shape[0] * 0.2), :int(img.shape[1] * 0.3)]
-    filtered_img = get_filtered_by_colors_image(img_for_ticker, np.array(ticker_lower), np.array(ticker_upper))
-    thr_img = cv2.threshold(cv2.cvtColor(filtered_img, cv2.COLOR_BGR2GRAY), 0, 255,
-                            cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-    text = get_text(thr_img)
+    borders = get_ticker_borders(img[:int(0.3 * img.shape[0]), :int(0.5 * img.shape[0])], 15, 5)
+    ticker = 'None'
+    for border in borders:
+        img_for_ticker = img[:border, :]
+        filtered_img = get_filtered_by_colors_image(img_for_ticker,
+                                                    np.array(ticker_lower),
+                                                    np.array(ticker_upper))
+        thr_img = cv2.threshold(cv2.cvtColor(filtered_img, cv2.COLOR_BGR2GRAY), 0, 255,
+                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        text = get_text(thr_img)
 
-    search = re.search(ticker_pattern, text)
-    if search:
-        ticker = search.group(0)
+        search = re.search(ticker_pattern, text)
+        if search:
+            ticker = search.group(0)
+            if ':' in ticker:
+                ticker = ticker.split(':')[1]
+            elif '-' in ticker:
+                ticker = ticker.split('-')[1]
+        else:
+            ticker = 'None'
 
-        if ':' in ticker:
-            ticker = ticker.split(':')[1]
-        elif '-' in ticker:
-            ticker = ticker.split('-')[1]
-    else:
-        ticker = 'None'
+        if ticker != 'None':
+            break
     return ticker
 
 

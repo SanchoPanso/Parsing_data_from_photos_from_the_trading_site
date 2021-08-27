@@ -5,7 +5,7 @@ import sys
 import os
 
 from config import *
-from border_detection import get_all_approx_contours, get_bounding_boxes, get_borders_of_vertical_scale
+from border_detection import get_ticker_borders, get_borders_of_vertical_scale
 from input_output import get_image_using_path, write_into_json
 
 from searching_for_definite_objects import PriceResult, mark_wrong_price_results
@@ -17,7 +17,7 @@ from searching_for_definite_objects import get_ticker
 
 def highlight_prices(img, border, all_price_result: dict, ticker, direction, delay):
 
-    img = cv2.putText(img, 'Tiker: ' + ticker,
+    img = cv2.putText(img, 'Ticker: ' + ticker,
                       (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
                       cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
 
@@ -92,19 +92,20 @@ def test_directory():
                 all_price_results = delete_intersecting_and_small(all_price_results)
                 direction = define_direction(all_price_results)
                 img = highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 1)
-                cv2.imwrite(f'results\\{path}', img)
+                cv2.imwrite(os.path.join("results", path), img)
         except Exception as e:
             print(e)
             print(f"There is a trouble with file{path}")
     print("Время работы: {:.2f} с".format(time.time() - start_time))
-    cv2.waitKey(0)
+    if cv2.waitKey(0) == 27:
+        sys.exit()
 
 
 def test_one_file():
     # print(sys.argv)
     start_time = time.time()
 
-    img = get_image_using_path(os.path.join("test_images", "f_167611fa2539237d.jpg"))
+    img = get_image_using_path(os.path.join("test_images", "f_414611fa2485348f.png"))
 
     borders_for_prices = get_borders_of_vertical_scale(img)
     for border in borders_for_prices:

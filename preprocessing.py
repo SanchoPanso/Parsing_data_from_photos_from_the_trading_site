@@ -123,11 +123,12 @@ def augment(aug_value: int or range or tuple):
 def trimming(widths_left, widths_right):
     def func(img):
         original_width = img.shape[1]
+        original_height = img.shape[0]
         result = []
         for w_left in widths_left:
             for w_right in widths_right:
                 im = img.copy()
-                im = im[:, w_left: original_width - w_right]
+                im = im[:, int(w_left * original_height): original_width - int(w_right * original_height)]
                 result.append(im)
         return result
     return func
@@ -183,7 +184,7 @@ preprocessing_for_text_recognition = Preprocessing()
 preprocessing_for_text_recognition.add(get_grayscale())
 preprocessing_for_text_recognition.add(augment((4, 5.5, 8)))
 preprocessing_for_text_recognition.add(thresholding(True))
-preprocessing_for_text_recognition.add(trimming((0,), (0,)))
+preprocessing_for_text_recognition.add(trimming((0, 0.25), (0,)))
 
 preprocessing_for_border_detection = Preprocessing()
 preprocessing_for_border_detection.add(get_grayscale())
@@ -192,6 +193,11 @@ preprocessing_for_border_detection.add(paint_borders_black())
 preprocessing_for_border_detection.add(gaussian_blur(range(5, 12, 2)))
 preprocessing_for_border_detection.add(canny(30, 60))
 preprocessing_for_border_detection.add(closing(range(3, 10, 2)))
+
+prepr_for_ticker_border = Preprocessing()
+prepr_for_ticker_border.add(get_grayscale())
+prepr_for_ticker_border.add(gaussian_blur(3))
+prepr_for_ticker_border.add(canny(30, 60))
 
 if __name__ == '__main__':
     pass
