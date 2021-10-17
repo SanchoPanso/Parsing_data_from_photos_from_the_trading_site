@@ -213,7 +213,7 @@ def delete_intersecting_and_too_small_or_big(all_price_results: dict):
         index_blacklist = []
         for j in range(len(price_result)):
             current_sq = price_result[j].w * price_result[j].h
-            if current_sq < 0.6 * mean or current_sq > 1.4 * mean:
+            if current_sq < 0.65 * mean or current_sq > 1.6 * mean:
                 index_blacklist.append(j)
         index_blacklists[i] = index_blacklist
 
@@ -258,13 +258,13 @@ def mark_wrong_price_results(all_price_results: dict):
     number_of_digits_after_dot_list = []
     for key in all_price_results.keys():
         price_results = all_price_results[key]
-        for price_result in price_results:
-            digits_before_dot = price_result.value.split('.')[0]
-            number_of_digits_before_dot_list.append(len(digits_before_dot))
+        if len(price_results) != 0:
+            for price_result in price_results:
+                digits_before_dot = price_result.value.split('.')[0]
+                number_of_digits_before_dot_list.append(len(digits_before_dot))
 
-            digits_after_dot = price_result.value.split('.')[1]
-            number_of_digits_after_dot_list.append(len(digits_after_dot))
-
+                digits_after_dot = price_result.value.split('.')[1]
+                number_of_digits_after_dot_list.append(len(digits_after_dot))
     digits_before_dot_stat = [0]*max(number_of_digits_before_dot_list)
     digits_after_dot_stat = [0]*max(number_of_digits_after_dot_list)
 

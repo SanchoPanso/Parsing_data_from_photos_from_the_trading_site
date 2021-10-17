@@ -55,7 +55,7 @@ def main():
             white_price_key: white_data,
         }
         all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)
-        all_price_results = mark_wrong_price_results(all_price_results)
+        # all_price_results = mark_wrong_price_results(all_price_results)
         direction = define_direction(all_price_results)
         print("Результаты обработаны")
 

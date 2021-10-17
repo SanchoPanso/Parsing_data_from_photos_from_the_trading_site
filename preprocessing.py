@@ -184,7 +184,7 @@ preprocessing_for_text_recognition = Preprocessing()
 preprocessing_for_text_recognition.add(get_grayscale())
 preprocessing_for_text_recognition.add(augment((4, 5.5, 8)))
 preprocessing_for_text_recognition.add(thresholding(True))
-preprocessing_for_text_recognition.add(trimming((0, 0.25), (0,)))
+preprocessing_for_text_recognition.add(trimming((0.23,), (0,)))
 
 preprocessing_for_border_detection = Preprocessing()
 preprocessing_for_border_detection.add(get_grayscale())

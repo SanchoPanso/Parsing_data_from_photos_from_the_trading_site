@@ -6,7 +6,7 @@ import os
 
 from config import *
 from border_detection import get_ticker_borders, get_borders_of_vertical_scale
-from input_output import get_image_using_path, write_into_json
+from input_output import get_image_using_path, write_into_json, get_image_using_url
 
 from searching_for_definite_objects import PriceResult, mark_wrong_price_results
 from searching_for_definite_objects import red_price_info, green_price_info, gray_price_info, white_price_info
@@ -105,7 +105,7 @@ def test_one_file():
     # print(sys.argv)
     start_time = time.time()
 
-    img = get_image_using_path(os.path.join("test_images", "f_576611fa25396703.jpg"))
+    img = get_image_using_url("https://www.tradingview.com/x/JopwW6IR/")
 
     borders_for_prices = get_borders_of_vertical_scale(img)
     for border in borders_for_prices:

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from config import mean_colors
-
+from input_output import get_image_using_url
 
 def define_mean_color_tool():
     samples = ["red_sample", "green_sample", "gray_sample", "white_sample", "blue_sample"]
@@ -158,7 +158,7 @@ def detection_tools_hsv(filename):
     cv2.createTrackbar("Val Min", "TrackBars", 0, 255, empty)
     cv2.createTrackbar("Val Max", "TrackBars", 255, 255, empty)
 
-    img = cv2.imread(filename)
+    img = get_image_using_url("https://www.tradingview.com/x/JopwW6IR/")
     img = img[:, int(img.shape[1]*0.5):]
 
     img = cv2.resize(img, (640, 640))
