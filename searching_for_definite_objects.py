@@ -9,7 +9,7 @@ from collections import namedtuple
 import re
 
 from config import *
-from preprocessing import preprocessing_for_text_recognition
+from preprocessing import Preprocessing
 from color_detection import get_filtered_by_colors_image, get_mean_color, check_color_proximity
 from border_detection import get_all_approx_contours, get_bounding_boxes, get_ticker_borders
 from text_recognition import get_digit_only_text_data, get_text, TextCash
@@ -61,6 +61,12 @@ def get_text_data_from_boxes(img: np.array, bboxes: list, mean_color_key: str, t
             current_mean_color = get_mean_color(cropped_img)
             if not check_color_proximity(mean_color_key, current_mean_color):
                 break
+
+            preprocessing_for_text_recognition = Preprocessing()
+            preprocessing_for_text_recognition.add_gray()
+            preprocessing_for_text_recognition.add_augment((4, 5.5, 8))
+            preprocessing_for_text_recognition.add_thresholding(True)
+            preprocessing_for_text_recognition.add_trimming((0.23,), (0,))
 
             preprocessed_img_list = preprocessing_for_text_recognition.preprocess(cropped_img)
 

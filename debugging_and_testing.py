@@ -15,8 +15,11 @@ from searching_for_definite_objects import get_price_data, define_direction, del
 from searching_for_definite_objects import get_ticker
 
 
-def highlight_prices(img, border, all_price_result: dict, ticker, direction, delay):
+positive_samples_counter = 0
 
+
+def highlight_prices(img, border, all_price_result: dict, ticker, direction, delay):
+    global positive_samples_counter
     img = cv2.putText(img, 'Ticker: ' + ticker,
                       (int(img.shape[1] * 0.25), int(img.shape[0] * 0.25)),
                       cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
@@ -25,7 +28,8 @@ def highlight_prices(img, border, all_price_result: dict, ticker, direction, del
                       (int(img.shape[1] * 0.25), int(img.shape[0] * 0.3)),
                       cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
 
-    img = cv2.line(img, (border, 0), (border, img.shape[0] - 1), (0, 255, 255))
+    # draw vertical scale
+    # img = cv2.line(img, (border, 0), (border, img.shape[0] - 1), (0, 255, 255))
 
     line_lenght = 900
     colors = {
@@ -45,6 +49,13 @@ def highlight_prices(img, border, all_price_result: dict, ticker, direction, del
             value = price.value
             reliability = price.reliability
 
+            # get positive samples
+            # sample_img = img[y: y + h, x + border - 7: x + border - 7 + w]
+            # cv2.imwrite(f"positive_samples\\{positive_samples_counter}.jpg", sample_img)
+            # positive_samples_counter += 1
+
+            # get negative samples
+
             img = cv2.rectangle(img, (x + border - 7, y), (x + border - 7 + w, y + h), color, 2)
             img = cv2.line(img, (x + border - 7, y), (x + border - 7 - line_lenght, y), color)
             img = cv2.putText(img, value, (x + border - 7 - line_lenght, y - 5),
@@ -59,7 +70,7 @@ def test_directory():
     img_paths = os.listdir("test_images")
     start_time = time.time()
     for path in img_paths:
-        try:
+        # try:
             print("##################")
             print(path)
             img = cv2.imread(os.path.join("test_images", path))
@@ -87,15 +98,15 @@ def test_directory():
                     white_price_key: white_data,
                 }
                 all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)
-                all_price_results = mark_wrong_price_results(all_price_results)
+                # all_price_results = mark_wrong_price_results(all_price_results)
                 direction = define_direction(all_price_results)
                 img = highlight_prices(img, borders_for_prices[0], all_price_results, ticker, direction, 1)
                 if not os.path.exists("results"):
                     os.mkdir("results")
                 cv2.imwrite(os.path.join("results", path), img)
-        except Exception as e:
-            print(e)
-            print(f"There is a trouble with file{path}")
+        # except Exception as e:
+        #     print(e)
+        #     print(f"There is a trouble with file{path}")
     print("Время работы: {:.2f} с".format(time.time() - start_time))
     if cv2.waitKey(0) == 27:
         sys.exit()
@@ -137,7 +148,7 @@ def test_one_file():
         }
 
         all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)
-        all_price_results = mark_wrong_price_results(all_price_results)
+        # all_price_results = mark_wrong_price_results(all_price_results)
         direction = define_direction(all_price_results)
 
         print("Время работы: {:.2f} с".format(time.time() - start_time))

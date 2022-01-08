@@ -2,16 +2,24 @@ import cv2
 import numpy as np
 from color_detection import get_filtered_by_colors_image
 import os
-import matplotlib.pyplot as plt
-from preprocessing import Preprocessing, preprocessing_for_border_detection, prepr_for_ticker_border
+from preprocessing import Preprocessing
 from config import *
 
 
 def get_all_approx_contours(img: np.ndarray):
+
+    preprocessing_for_border_detection = Preprocessing()
+    preprocessing_for_border_detection.add_gray()
+    preprocessing_for_border_detection.add_closing(range(3, 10, 2))
+    preprocessing_for_border_detection.add_paint_borders_black()
+    preprocessing_for_border_detection.add_gaussian_blur(range(5, 12, 2))
+    preprocessing_for_border_detection.add_canny(30, 60)
+    preprocessing_for_border_detection.add_closing(range(3, 10, 2))
+
     poly_contours_list = []
     preprocessed_img_list = preprocessing_for_border_detection.preprocess(img)
     for preprocessed_img in preprocessed_img_list:
-        contours = cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+        contours = list(cv2.findContours(preprocessed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0])
 
         for i in range(len(contours)):
             contours[i] = cv2.convexHull(contours[i])
@@ -90,8 +98,15 @@ def get_ticker_borders(img: np.ndarray,
                        ):
     height = img.shape[0]
     width = img.shape[1]
-    prepr_img = prepr_for_ticker_border.preprocess(img)
+
+    prepr_for_ticker_border = Preprocessing()
+    prepr_for_ticker_border.add_gray()
+    prepr_for_ticker_border.add_gaussian_blur(3)
+    prepr_for_ticker_border.add_canny(30, 60)
+
+    prepr_img = prepr_for_ticker_border.preprocess(img)[0]
     borders = []
+
     for y in range(height):
         if y == height - 1:
             borders.append(y)
@@ -114,10 +129,12 @@ def get_ticker_borders(img: np.ndarray,
 def get_borders_of_vertical_scale(img):
     height = img.shape[0]
     width = img.shape[1]
+
     filtered = get_filtered_by_colors_image(img, np.array([0, 0, 0]), np.array([180, 85, 115]))
     gray = cv2.cvtColor(filtered, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
     edged = cv2.Canny(blur, 30, 60)
+
     # cv2.imshow("Edged", edged[:, int(0.9*width):])
     # cv2.waitKey(1000)
     borders = []
