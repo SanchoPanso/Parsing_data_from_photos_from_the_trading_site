@@ -10,7 +10,7 @@ import re
 
 from config import *
 from preprocessing import Preprocessing
-from color_detection import get_filtered_by_colors_image, get_mean_color, check_color_proximity
+from color_detection import get_color_filtered_image, get_mean_color, check_color_proximity
 from border_detection import get_all_approx_contours, get_bounding_boxes, get_ticker_borders
 from text_recognition import get_digit_only_text_data, get_text, TextCash
 
@@ -130,7 +130,7 @@ def get_price_data(img: np.ndarray, price_info: PriceInfo):
     upper = price_info.upper
     mean_color = price_info.mean_color
 
-    filtered_img = get_filtered_by_colors_image(img, lower, upper)
+    filtered_img = get_color_filtered_image(img, lower, upper)
     approx_contours_list = get_all_approx_contours(filtered_img)
     bboxes_list = get_bounding_boxes(approx_contours_list)
 
@@ -152,9 +152,9 @@ def get_ticker(img: np.ndarray):
     ticker = 'None'
     for border in borders:
         img_for_ticker = img[:border, :]
-        filtered_img = get_filtered_by_colors_image(img_for_ticker,
-                                                    np.array(ticker_lower),
-                                                    np.array(ticker_upper))
+        filtered_img = get_color_filtered_image(img_for_ticker,
+                                                np.array(ticker_lower),
+                                                np.array(ticker_upper))
         thr_img = cv2.threshold(cv2.cvtColor(filtered_img, cv2.COLOR_BGR2GRAY), 0, 255,
                                 cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
         text = get_text(thr_img)

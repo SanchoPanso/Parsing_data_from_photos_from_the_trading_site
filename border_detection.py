@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from color_detection import get_filtered_by_colors_image
+from color_detection import get_color_filtered_image
 import os
 from preprocessing import Preprocessing
 from config import *
@@ -130,7 +130,7 @@ def get_borders_of_vertical_scale(img):
     height = img.shape[0]
     width = img.shape[1]
 
-    filtered = get_filtered_by_colors_image(img, np.array([0, 0, 0]), np.array([180, 85, 115]))
+    filtered = get_color_filtered_image(img, np.array([0, 0, 0]), np.array([180, 85, 115]))
     gray = cv2.cvtColor(filtered, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
     edged = cv2.Canny(blur, 30, 60)
