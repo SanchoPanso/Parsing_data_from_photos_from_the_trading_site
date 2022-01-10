@@ -26,15 +26,14 @@ def get_color_filtered_image(img, lower: np.ndarray, upper: np.ndarray) -> np.nd
 
 
 def get_mean_color(img: np.ndarray) -> list:
-    width = img.shape[1]
     height = img.shape[0]
+    width = img.shape[1]
+
     mean = [0, 0, 0]
-    for x in range(width):
-        for y in range(height):
-            for canal in range(3):
-                mean[canal] += img[y, x][canal]
-    for canal in range(3):
-        mean[canal] = int(mean[canal] / (width * height))
+    mean[0] = img[:, :, 0].sum() / (height * width)
+    mean[1] = img[:, :, 1].sum() / (height * width)
+    mean[2] = img[:, :, 2].sum() / (height * width)
+
     return mean
 
 
@@ -61,29 +60,6 @@ def check_color_proximity(mean_color_key: str, current_color: list) -> bool:
     return False
 
 
-# def check_color_proximity(mean_color_key: str, current_color: list) -> bool:
-#     mean_colors_keys_and_values = []
-#     for key in mean_colors.keys():
-#         mean_colors_keys_and_values.append([key, mean_colors[key]])
-#
-#     keys_and_distances = []
-#     for color in mean_colors_keys_and_values:
-#         distance = 0
-#         for canal in range(3):
-#             distance += (current_color[canal] - color[1][canal]) ** 2
-#         keys_and_distances.append([color[0], distance])
-#
-#     keys_and_distances = sorted(keys_and_distances, key=lambda x: x[1])
-#     if keys_and_distances[0][0] == mean_color_key:
-#         return True
-#
-#     for i in range(1, len(keys_and_distances)):
-#         if keys_and_distances[i][0] == mean_color_key:
-#             # if distances[0][1] / distances[i][1] > 0.8: # возможно, поменять
-#                 return True
-#     return False
-
-
 def get_nearest_mean_color(current_mean_color):
     keys = mean_colors.keys()
     distances = dict()
@@ -103,10 +79,10 @@ def get_nearest_mean_color(current_mean_color):
     return min_key
 
 
-def apply_mask(img: np.ndarray, img_hsv: np.ndarray, lower: np.ndarray, upper: np.ndarray):
+def apply_mask(img_bgr: np.ndarray, img_hsv: np.ndarray, lower: np.ndarray, upper: np.ndarray) -> np.array:
     mask = cv2.inRange(img_hsv, lower, upper)
-    img_result = cv2.bitwise_and(img, img, mask=mask)
-    return img_result
+    img_bgr_filtered = cv2.bitwise_and(img_bgr, img_bgr, mask=mask)
+    return img_bgr_filtered
 
 
 def define_mean_color_tool():
