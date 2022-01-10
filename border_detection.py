@@ -3,7 +3,8 @@ import numpy as np
 from color_detection import get_color_filtered_image
 import os
 from preprocessing import Preprocessing
-from config import *
+# from config import *
+import config as cfg
 
 
 def get_all_approx_contours(img: np.ndarray):
@@ -32,10 +33,10 @@ def get_all_approx_contours(img: np.ndarray):
                 poly_contours.append(approx)
         poly_contours_list.append(poly_contours)
 
-        if debug_mode:
+        if cfg.debug_mode:
             poly = cv2.drawContours(img.copy(), poly_contours, -1, (0, 255, 255), 2)
             cv2.imshow('img', cv2.resize(poly, (160, 720)))
-            cv2.waitKey(dbg_delay)
+            cv2.waitKey(cfg.dbg_delay)
 
     return poly_contours_list
 

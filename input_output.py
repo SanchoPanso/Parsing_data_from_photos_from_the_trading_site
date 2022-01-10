@@ -7,7 +7,8 @@ import os
 import sys
 import argparse
 
-from config import *
+# from config import *
+import config as cfg
 
 example_url = "https://www.tradingview.com/x/nShwrpHU/"
 example_path = "example.jpg"
@@ -65,13 +66,13 @@ def get_image_using_url(original_url: str) -> np.ndarray or None:
 def prepare_dict_for_output(all_price_results: dict, direction: str, ticker: str):
     """collect prices, direction, ticker into a single dictionary"""
     result_dict = dict()
-    for field in price_data_keys:
+    for field in cfg.price_data_keys:
         result_dict[field] = []
         for price_result in all_price_results[field]:
             result_dict[field].append(price_result.value)
 
-    result_dict[direction_key] = direction
-    result_dict[ticker_key] = ticker
+    result_dict[cfg.direction_key] = direction
+    result_dict[cfg.ticker_key] = ticker
 
     return result_dict
 

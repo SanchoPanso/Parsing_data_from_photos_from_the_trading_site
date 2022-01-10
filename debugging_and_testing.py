@@ -4,7 +4,8 @@ import time
 import sys
 import os
 
-from config import *
+import config as cfg
+# from config import *
 from border_detection import get_ticker_borders, get_borders_of_vertical_scale
 from input_output import get_image_using_path, write_into_json, get_image_using_url
 
@@ -33,10 +34,10 @@ def highlight_prices(img, border, all_price_result: dict, ticker, direction, del
 
     line_lenght = 900
     colors = {
-        red_price_key: (0, 0, 255),
-        green_price_key: (0, 255, 0),
-        gray_price_key: (128, 128, 128),
-        white_price_key: (255, 255, 255),
+        cfg.red_price_key: (0, 0, 255),
+        cfg.green_price_key: (0, 255, 0),
+        cfg.gray_price_key: (128, 128, 128),
+        cfg.white_price_key: (255, 255, 255),
     }
     for i in all_price_result.keys():
         price_result = all_price_result[i]
@@ -92,10 +93,10 @@ def test_directory():
                 print(f"Предварительная белая цена: {white_data}")
 
                 all_price_results = {
-                    red_price_key: red_data,
-                    green_price_key: green_data,
-                    gray_price_key: gray_data,
-                    white_price_key: white_data,
+                    cfg.red_price_key: red_data,
+                    cfg.green_price_key: green_data,
+                    cfg.gray_price_key: gray_data,
+                    cfg.white_price_key: white_data,
                 }
                 all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)
                 # all_price_results = mark_wrong_price_results(all_price_results)
@@ -141,10 +142,10 @@ def test_one_file():
             continue
 
         all_price_results = {
-            red_price_key: red_data,
-            green_price_key: green_data,
-            gray_price_key: gray_data,
-            white_price_key: white_data,
+            cfg.red_price_key: red_data,
+            cfg.green_price_key: green_data,
+            cfg.gray_price_key: gray_data,
+            cfg.white_price_key: white_data,
         }
 
         all_price_results = delete_intersecting_and_too_small_or_big(all_price_results)

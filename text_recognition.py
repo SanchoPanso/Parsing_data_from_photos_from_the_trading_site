@@ -4,10 +4,11 @@ import pytesseract
 from pytesseract import Output
 import re
 import os
-from config import windows_tesseract_path
+# from config import windows_tesseract_path
+import config as cfg
 
 if os.name == 'nt':
-    pytesseract.pytesseract.tesseract_cmd = windows_tesseract_path
+    pytesseract.pytesseract.tesseract_cmd = cfg.windows_tesseract_path
 
 
 class TextCash:

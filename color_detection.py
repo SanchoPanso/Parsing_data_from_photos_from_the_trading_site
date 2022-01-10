@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import config as cfg
-from input_output import get_image_using_url
 
 
 def get_color_filtered_image(img, lower: np.ndarray, upper: np.ndarray) -> np.ndarray:
