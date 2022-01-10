@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from config import mean_colors
+import config as cfg
 from input_output import get_image_using_url
 
 
@@ -41,8 +41,8 @@ def check_color_proximity(mean_color_key: str, current_color: list) -> bool:
     # create dictionary of distances from current_color to all mean colors in config
     # distance - an euclidean distance in 3-dim space of colors
     distances = dict()
-    for key in mean_colors.keys():
-        mean_color = mean_colors[key]
+    for key in cfg.mean_colors.keys():
+        mean_color = cfg.mean_colors[key]
         distance = sum([(current_color[canal] - mean_color[canal])**2 for canal in range(3)])
         distances[key] = distance
 
@@ -58,25 +58,6 @@ def check_color_proximity(mean_color_key: str, current_color: list) -> bool:
         return True
 
     return False
-
-
-def get_nearest_mean_color(current_mean_color):
-    keys = mean_colors.keys()
-    distances = dict()
-    for key in keys:
-        distance = 0
-        for canal in range(3):
-            distance += (current_mean_color[canal] - mean_colors[key][canal]) ** 2
-        distances[key] = distance
-
-    min_key = ''
-    min_value = 0
-    for key in keys:
-        if min_value == 0 or min_value > distances[key]:
-            min_key = key
-            min_value = distances[key]
-
-    return min_key
 
 
 def apply_mask(img_bgr: np.ndarray, img_hsv: np.ndarray, lower: np.ndarray, upper: np.ndarray) -> np.array:
